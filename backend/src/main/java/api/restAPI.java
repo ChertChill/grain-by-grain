@@ -1,9 +1,12 @@
 package api;
 
-import io.javalin.*;
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
+import java.util.Scanner;
 
 
 public class restAPI {
@@ -44,16 +47,45 @@ public class restAPI {
     private static class LoginRequest {
         public String email;
         public String password;
+        public void toLogin() {
+            if (email != null && password != null) {
+                try {
+                    if (email.equals(email) && password.equals(RegisterRequest.hashPassword(password))) {
+                        System.out.println("ENTER IS DONE");
+                    }
+                    System.out.println("WRONG PASSWORD OR LOGIN");
+                } catch (NoSuchAlgorithmException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+
+        }
     }
 
     private static class RegisterRequest {
         public String name;
         public String email;
         public String password;
+        public void toRegistrate() {
+            Scanner scanner = new Scanner(System.in);
+            email = scanner.nextLine().trim();
+            password = scanner.nextLine().trim();
+        }
+        public static String hashPassword(String password) throws NoSuchAlgorithmException {
+            MessageDigest hashedPassword = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = hashedPassword.digest(password.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                String hex = String.format("%02x", b);
+                hexString.append(hex);
+            }
+            return password;
+        }
     }
 
     //PLACEHOLDERS - ИМЕНИТЬ НА НАСТОЯЩИЕ МЕТОДЫ
-    public static Boolean loginUser(String email, String password) {
+    /*public static Boolean loginUser(String email, String password) {
         System.out.println("Вызов loginUser");
         System.out.println(email);
         System.out.println(password);
@@ -66,5 +98,8 @@ public class restAPI {
         System.out.println(email);
         System.out.println(password);
         return true;
+
     }
+    */
+
 }
