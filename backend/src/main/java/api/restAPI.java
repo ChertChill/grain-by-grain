@@ -3,6 +3,9 @@ package api;
 import io.javalin.*;
 import io.javalin.http.Context;
 
+import java.util.Map;
+
+
 public class restAPI {
 
     public static void start() {
@@ -17,7 +20,7 @@ public class restAPI {
             });
         });
 
-        int port = 7000;
+        int port = 7070;
         app.start(port);
 
         app.post("/api/login", restAPI::handleLogin);
@@ -26,36 +29,42 @@ public class restAPI {
 
     private static void handleRegistration(Context ctx) {
         RegisterRequest req = ctx.bodyAsClass(RegisterRequest.class);
-        Boolean registerResult = registerUser(req.username, req.password, req.email); //registerUser - PLACEHOLDER!!!
-        if (registerResult) ctx.status(201);
+        Boolean registerResult = registerUser(req.name, req.email, req.password); //registerUser - PLACEHOLDER!!!
+        if (registerResult) ctx.status(201).json(Map.of("success", true));
         else ctx.status(400);
-
     }
 
     private static void handleLogin(Context ctx) {
         LoginRequest req = ctx.bodyAsClass(LoginRequest.class);
-        String loginResult = loginUser(req.username, req.password); //loginUser - PLACEHOLDER!!!
-        if (loginResult == null) ctx.status(400);
-        else ctx.status(200).json(loginResult);
+        Boolean loginResult = loginUser(req.email, req.password); //loginUser - PLACEHOLDER!!!
+        if (loginResult) ctx.status(201).json(Map.of("success", true));
+        else ctx.status(400);
     }
 
     private static class LoginRequest {
-        public String username;
+        public String email;
         public String password;
     }
 
     private static class RegisterRequest {
-        public String username;
-        public String password;
+        public String name;
         public String email;
+        public String password;
     }
 
     //PLACEHOLDERS - ИМЕНИТЬ НА НАСТОЯЩИЕ МЕТОДЫ
-    public static String loginUser(String username, String password) {
-        return null;
+    public static Boolean loginUser(String email, String password) {
+        System.out.println("Вызов loginUser");
+        System.out.println(email);
+        System.out.println(password);
+        return true;
     }
 
-    public static Boolean registerUser(String username, String password, String email) {
+    public static Boolean registerUser(String name, String email, String password) {
+        System.out.println("Вызов registerUser");
+        System.out.println(name);
+        System.out.println(email);
+        System.out.println(password);
         return true;
     }
 }
