@@ -1,0 +1,351 @@
+html {
+    cursor: url('icons/cursor-grain.svg'), auto;
+    background: #FFEECC;
+
+    font-family: "Ubuntu", sans-serif;
+    color: #1E1E1E;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+#wrapper {
+    max-width: calc(1200px + 64px);
+    width: 100%;
+    padding: 0 32px;
+    box-sizing: border-box;
+    margin: 120px auto 0;
+}
+
+
+
+/* Шапка */
+
+#header {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 12px 32px;
+    box-sizing: border-box;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.5);
+    background: #FFEECC;
+}
+
+    #header-logo {
+        font-size: 28px;
+        line-height: 120%;
+        font-weight: 500;
+    }
+
+
+    
+    #header-account {
+        display: flex;
+        align-items: center;
+    }
+    
+    #user-info {
+        display: flex;
+        align-items: center;
+        margin-right: 12px;
+        font-weight: 500;
+    }
+    
+    #user-name {
+        font-size: 16px;
+    }
+
+    #logout-button {
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: #FB5884;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+        
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 100%;
+        text-align: center;
+        color: #FFF;
+    }
+    
+    #logout-button:hover {
+        box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.2);
+        background: #D93866;
+    }
+
+
+
+/* Модальное окно аутентификации */
+
+.modal {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    position: relative;
+    max-width: 450px;
+    width: 100%;
+
+    padding: 24px;
+    /* box-sizing: border-box; */
+    border-radius: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: #FFEECC;
+}
+
+.close-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.auth-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #E2D4BA;
+}
+
+.auth-tab {
+    padding: 10px 20px;
+    box-sizing: border-box;
+    cursor: pointer;
+    
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.auth-tab.active {
+    color: #577BFF;
+    border-bottom: 2px solid #577BFF;
+    margin-bottom: -2px;
+}
+
+.auth-form {
+    display: none;
+}
+
+.auth-form.active {
+    display: block;
+}
+
+.auth-form h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+
+    font-size: 22px;
+    color: #1E1E1E;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid #E2D4BA;
+    background-color: #FFF;
+
+    font-family: "Ubuntu", sans-serif;
+    font-size: 16px;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #99AFFF;
+    box-shadow: 0 0 0 2px rgba(153, 175, 255, 0.3);
+}
+
+.error-message {
+    min-height: 18px;
+    margin-bottom: 12px;
+
+    font-size: 14px;
+    line-height: 18px;
+    color: #FB5884;
+}
+
+.auth-submit {
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 8px;
+    background-color: #99AFFF;
+
+    font-family: "Ubuntu", sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 120%;
+    color: white;
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+}
+
+.auth-submit:hover {
+    background-color: #577BFF;
+    box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.2);
+}
+
+
+
+/* Фильтр */
+
+#filter {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr max-content;
+    align-items: center;
+    gap: 16px;
+}
+
+    .block {
+        width: 100%;
+        height: 100%;
+        padding: 20px 16px;
+        box-sizing: border-box;
+        border-radius: 12px;
+        box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.1);
+        background: #FFDC8B;
+    }
+
+    #filter-buttons {
+        display: flex;
+        flex-wrap: nowrap;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+        .filter-button {
+            width: 100%;
+            padding: 12px 16px;
+            box-sizing: border-box;
+            border-radius: 8px;
+            background: #99AFFF;
+            transition: all 0.3s ease-in-out;
+
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 100%;
+            text-align: center;
+            color: #FFF;
+        }
+
+        .filter-button:hover {
+            box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.2);
+            background: #577BFF;
+        }
+
+
+
+/* Сводка */
+
+#summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 16px;
+
+    margin-top: 20px;
+}
+
+
+
+/* Транзакции */
+
+#transactions {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: column;
+    gap: 12px;
+
+    margin-top: 20px;
+}
+
+    #transaction-new {
+        display: flex;
+        justify-content: center;
+        gap: 0;
+
+        border: 3px dashed #8BFF92;
+        background: rgba(198, 255, 202, 0.5); /* #C6FFCA; */
+    }
+
+    .transaction-item {
+        display: grid;
+        align-items: center;
+        grid-template-columns: 1fr min-content;
+        gap: 16px;
+
+        width: 100%;
+        padding: 20px;
+        box-sizing: border-box;
+        border-radius: 16px;
+        background: #F5C8FF;
+    }
+
+        .ti-buttons {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            flex-direction: row;
+            gap: 12px;
+        }
+
+            .ti__button {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                transition: all 0.2s ease-in-out;
+            }
+
+            .ti__button:hover {
+                box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.2);
+            }
+
+            #ti-edit {
+                background: #FFF url('icons/edit-square.svg') center / 24px no-repeat;
+            }
+
+            #ti-apply {
+                background: #C6FFCA url('icons/check.svg') center / 24px no-repeat;
+            }
+
+            #ti-delete {
+                background: #FB5884 url('icons/delete.svg') center / 24px no-repeat;
+            }
