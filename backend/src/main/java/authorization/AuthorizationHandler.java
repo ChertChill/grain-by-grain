@@ -13,11 +13,10 @@ public class AuthorizationHandler {
     //секретный ключ, необходимый для подписи/верификации JWT-токенов
     //по хорошему, вынести в отдельный файл конфигурации
     static SecretKey key = Jwts.SIG.HS256.key().build();
+    static final int tokenExpirationTime = 60;
 
     //логин пользователя по логину/паролю
-    public String login(String username, String password) throws IncorrectPasswordException {
-        final int tokenExpirationTime = 5; // время жизни (в минутах) токена авторизации
-
+    public String login(String username, String password) throws IncorrectPasswordException {// время жизни (в минутах) токена авторизации
         //достаем из БД хэшированный пароль, проверяем его с введенным
         String hashedPassword = getUserHashedPW(username);
         if (!BCrypt.checkpw(password, hashedPassword)) throw new IncorrectPasswordException("Wrong Password!");
