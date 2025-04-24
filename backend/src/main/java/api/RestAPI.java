@@ -67,14 +67,20 @@ public class RestAPI {
             return;
         }
         String token = authHeader.substring(7);
+        Map<String, Object> response = new LinkedHashMap<>();
         try {
             User currentUser = JWTHandler.getUser(token);
-            Map<String, Object> response = new LinkedHashMap<>();
             response.put("valid", true);
             response.put("full_name", currentUser.getFullName());
             ctx.status(201).json(response);
         } catch (JwtException e) {
-            ctx.status(400).json(e.getMessage());
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            ctx.status(400).json(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", "UNEXPECTED ERROR: " + e.getMessage());
+            ctx.status(400).json(response);
         }
     }
 
@@ -83,17 +89,21 @@ public class RestAPI {
         AuthorizationHandler authorizationHandler = new AuthorizationHandler();
         //парсим JSON из запроса в registerData
         registerData req = ctx.bodyAsClass(registerData.class);
+        Map<String, Object> response = new LinkedHashMap<>();
         try {
             //запрос на регистрацию в authorizationHandler, который проведет все проверки/хэш пароля
             String authToken = authorizationHandler.register(req.full_name, req.password, req.email);
-            Map<String, Object> response = new LinkedHashMap<>();
             response.put("success", true);
             response.put("token", authToken);
             ctx.status(201).json(response);
         } catch (RegistrationInputException e) {
-            ctx.status(400).json(e.getMessage());
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            ctx.status(400).json(response);
         } catch (Exception e) {
-            ctx.status(400).json("UNEXPECTED ERROR: " + e.getMessage());
+            response.put("success", false);
+            response.put("error", "UNEXPECTED ERROR: " + e.getMessage());
+            ctx.status(400).json(response);
         }
     }
 
@@ -101,19 +111,23 @@ public class RestAPI {
     private static void loginRequest(Context ctx) throws IncorrectPasswordException {
         AuthorizationHandler authorizationHandler = new AuthorizationHandler();
         loginData req = ctx.bodyAsClass(loginData.class);
+        Map<String, Object> response = new LinkedHashMap<>();
         try {
             //authorizationHandler либо возвращает JWT-токен, либо выкидывает ошибку.
             String authToken = authorizationHandler.login(req.email, req.password);
-            Map<String, Object> response = new LinkedHashMap<>();
             response.put("success", true);
             response.put("token", authToken);
             response.put("full_name", JWTHandler.getUser(authToken).getFullName());
 
             ctx.status(201).json(response);
         } catch (IncorrectPasswordException e) {
-            ctx.status(400).json(e.getMessage());
-        }  catch (Exception e) {
-            ctx.status(400).json("UNEXPECTED ERROR: " + e.getMessage());
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            ctx.status(400).json(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", "UNEXPECTED ERROR: " + e.getMessage());
+            ctx.status(400).json(response);
         }
     }
 
