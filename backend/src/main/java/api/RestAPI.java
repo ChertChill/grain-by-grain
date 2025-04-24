@@ -8,7 +8,10 @@ import authorization.errors.RegistrationInputException;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.jsonwebtoken.JwtException;
+import transactions.TransactionFilter;
 
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 
@@ -34,6 +37,25 @@ public class RestAPI {
         app.post("/api/login", RestAPI::loginRequest);
         app.post("/api/register", RestAPI::registrationRequest);
         app.get("/api/check_user", RestAPI::checkUser);
+        app.get("/api/get_user_transactions", RestAPI::getUserTransactions);
+    }
+
+    private static void getUserTransactions(Context ctx) {
+        String authHeader = ctx.header("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            ctx.status(401).json("Missing or invalid Authorization header");
+            return;
+        }
+        String token = authHeader.substring(7);
+
+        try {
+            User currentUser = JWTHandler.getUser(token);
+            TransactionFilter transactionFilter = new TransactionFilter();
+            Map<String, List<String>> queryParams = ctx.queryParamMap();
+            ctx.status(201).json(transactionFilter.getUserTransactions(currentUser, queryParams));
+        } catch (JwtException | SQLException e) {
+            ctx.status(400).json(e.getMessage());
+        }
     }
 
     //выдает всю информацию по авторизованному юзеру (через JWT-токен)
@@ -54,7 +76,7 @@ public class RestAPI {
         registerData req = ctx.bodyAsClass(registerData.class);
         try {
             //запрос на регистрацию в authorizationHandler, который проведет все проверки/хэш пароля
-            authorizationHandler.register(req.name, req.password, req.email);
+            authorizationHandler.register(req.user_name, req.password, req.email);
             ctx.status(201).json(Map.of("success", true));
         } catch (RegistrationInputException e) {
             ctx.status(400).json(e.getMessage());
@@ -69,7 +91,7 @@ public class RestAPI {
         loginData req = ctx.bodyAsClass(loginData.class);
         try {
             //authorizationHandler либо возвращает JWT-токен, либо выкидывает ошибку.
-            String loginResult = authorizationHandler.login(req.name, req.password);
+            String loginResult = authorizationHandler.login(req.user_name, req.password);
             ctx.status(201).json(Map.of("success", loginResult));
         } catch (IncorrectPasswordException e) {
             ctx.status(400).json(e.getMessage());
@@ -80,12 +102,12 @@ public class RestAPI {
 
     //промежуточные классы, необходимые для парсинга JSONа. Не содержат никакой логики.
     private static class loginData {
-        public String name;
+        public String user_name;
         public String password;
     }
 
     private static class registerData {
-        public String name;
+        public String user_name;
         public String email;
         public String password;
     }
