@@ -38,7 +38,7 @@ public class RestAPI {
         app.post("/api/login", RestAPI::loginRequest);
         app.post("/api/register", RestAPI::registrationRequest);
         app.get("/api/check_user", RestAPI::checkUser);
-        app.get("/api/get_user_transactions", RestAPI::getUserTransactions);
+        app.get("/api/get_transactions", RestAPI::getUserTransactions);
     }
 
     private static void getUserTransactions(Context ctx) {

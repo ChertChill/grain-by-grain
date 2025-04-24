@@ -28,6 +28,21 @@ public class TransactionFilter {
             parameters.add(Integer.valueOf(filters.get("status_id").getFirst()));
         }
 
+        if (filters.containsKey("bank")) {
+            query.append(" AND bank = ?");
+            parameters.add(filters.get("bank").getFirst());
+        }
+
+        if (filters.containsKey("amount_gt")) {
+            query.append(" AND amount >= ?");
+            parameters.add(Integer.valueOf(filters.get("amount_gt").getFirst()));
+        }
+
+        if (filters.containsKey("amount_lw")) {
+            query.append(" AND amount <= ?");
+            parameters.add(Integer.valueOf(filters.get("amount_lw").getFirst()));
+        }
+
         try (PreparedStatement stmt = DatabaseConnection.getConnection().prepareStatement(query.toString())) {
             for (int i = 0; i < parameters.size(); i++) {
                 stmt.setObject(i + 1, parameters.get(i)); // Bind values safely
@@ -35,9 +50,9 @@ public class TransactionFilter {
 
             System.out.println(stmt.toString());
             ResultSet rs = stmt.executeQuery();
-//            while (rs.next()) {
-//                transactions.add(mapResultSetToTransaction(rs));
-//            }
+            while (rs.next()) {
+                transactions.add(mapResultSetToTransaction(rs));
+            }
             return transactions;
         }
     }
@@ -45,34 +60,36 @@ public class TransactionFilter {
 
     private Transaction mapResultSetToTransaction(ResultSet resultSet) throws SQLException {
         Transaction transaction = new Transaction();
-        transaction.setTransactionId(resultSet.getLong("transaction_id"));
+        transaction.setTransactionID(resultSet.getLong("transaction_id"));  // transaction_id
 
-        transaction.setSenderBankId(resultSet.getLong("sender_bank_id"));
+        transaction.setUserID(resultSet.getLong("user_id"));  // user_id
 
-        transaction.setRecieverBankId(resultSet.getLong("Reciever_bank_id"));
+        transaction.setLegalTypeID(resultSet.getInt("legal_type_id"));  // person_type_id (assuming this is legalTypeID)
 
+        transaction.setTransactionDate(resultSet.getTimestamp("transaction_date").toLocalDateTime());  // transaction_date
 
-        transaction.setStatusId(resultSet.getLong("status_id"));
+        transaction.setTypeID(resultSet.getInt("type_id"));  // type_id
 
-        transaction.setRecieverInn(String.valueOf(resultSet.getLong("Reciever_inn")));
+        transaction.setAmount(resultSet.getInt("amount"));  // amount (assuming it's stored as an integer)
 
-        transaction.setPersonTypeId(resultSet.getLong("person_type_id"));
+        transaction.setStatusID(resultSet.getInt("status_id"));  // status_id
 
-        transaction.setAccountNumber(resultSet.getString("account_number"));
+        transaction.setBank(resultSet.getString("bank"));  // bank (assuming sender_bank_id is the bank column)
 
-        transaction.setRecieverAccount(resultSet.getString("Reciever_account"));
+        transaction.setAccountNumber(resultSet.getString("account_number"));  // account_number
 
-        transaction.setRecieverPhone(resultSet.getString("Reciever_phone"));
+        transaction.setRecipientNumber(resultSet.getString("recipient_number"));  // Recipient_number (assuming Reciiver_bank_id maps to recipient number)
 
-        transaction.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
+        transaction.setRecipientTIN(resultSet.getLong("recipient_tin"));  // Recipient_tin (Reciiver_inn)
 
-        transaction.setUpdatedAt(resultSet.getTimestamp("updated_at").toLocalDateTime());
+        transaction.setPhone(resultSet.getString("phone"));  // Reciiver_phone (phone)
 
-        transaction.setTransactionDate(resultSet.getTimestamp("transaction_date").toLocalDateTime());
-        transaction.setCategoryId(resultSet.getLong("category_id"));
-        transaction.setTypeId(resultSet.getLong("type_id"));
-        transaction.setAmount(resultSet.getDouble("amount"));
-        transaction.setComment(resultSet.getString("comment"));
+        transaction.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());  // created_at
+
+        transaction.setCategoryID(resultSet.getInt("category_id"));  // category_id
+
+        transaction.setComment(resultSet.getString("comment"));  // comment
+
 
         return transaction;
     }
