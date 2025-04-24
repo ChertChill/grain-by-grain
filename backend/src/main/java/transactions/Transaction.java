@@ -18,19 +18,19 @@ public class Transaction {
     private Long statusId;
     private Long senderBankId;
     private String accountNumber;
-    private Long RecieverBankId;
-    private String RecieverInn;
-    private String RecieverAccount;
+    private Long recieverBankId;
+    private String recieverInn;
+    private String recieverAccount;
     private Long categoryId;
-    private String RecieverPhone;
+    private String recieverPhone;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     // Полный конструктор
     public Transaction(Long transactionId, Long userId, Long personTypeId, LocalDateTime transactionDate,
                        Long typeId, String comment, Double amount, Long statusId, Long senderBankId,
-                       String accountNumber, Long RecieverBankId, String RecieverInn,
-                       String RecieverAccount, Long categoryId, String RecieverPhone,
+                       String accountNumber, Long recieverBankId, String recieverInn,
+                       String recieverAccount, Long categoryId, String recieverPhone,
                        LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.transactionId = transactionId;
         this.userId = userId;
@@ -42,11 +42,11 @@ public class Transaction {
         this.statusId = statusId;
         this.senderBankId = senderBankId;
         this.accountNumber = accountNumber;
-        this.RecieverBankId = RecieverBankId;
-        this.RecieverInn = RecieverInn;
-        this.RecieverAccount = RecieverAccount;
+        this.recieverBankId = recieverBankId;
+        this.recieverInn = recieverInn;
+        this.recieverAccount = recieverAccount;
         this.categoryId = categoryId;
-        this.RecieverPhone = RecieverPhone;
+        this.recieverPhone = recieverPhone;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -136,27 +136,27 @@ public class Transaction {
     }
 
     public Long getRecieverBankId() {
-        return RecieverBankId;
+        return recieverBankId;
     }
 
-    public void setRecieverBankId(Long RecieverBankId) {
-        this.RecieverBankId = RecieverBankId;
+    public void setRecieverBankId(Long recieverBankId) {
+        this.recieverBankId = recieverBankId;
     }
 
     public String getRecieverInn() {
-        return RecieverInn;
+        return recieverInn;
     }
 
-    public void setRecieverInn(String RecieverInn) {
-        this.RecieverInn = RecieverInn;
+    public void setRecieverInn(String recieverInn) {
+        this.recieverInn = recieverInn;
     }
 
     public String getRecieverAccount() {
-        return RecieverAccount;
+        return recieverAccount;
     }
 
-    public void setRecieverAccount(String RecieverAccount) {
-        this.RecieverAccount = RecieverAccount;
+    public void setRecieverAccount(String recieverAccount) {
+        this.recieverAccount = recieverAccount;
     }
 
     public Long getCategoryId() {
@@ -168,11 +168,11 @@ public class Transaction {
     }
 
     public String getRecieverPhone() {
-        return RecieverPhone;
+        return recieverPhone;
     }
 
-    public void setRecieverPhone(String RecieverPhone) {
-        this.RecieverPhone = RecieverPhone;
+    public void setRecieverPhone(String recieverPhone) {
+        this.recieverPhone = recieverPhone;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -207,11 +207,11 @@ public class Transaction {
                 Objects.equals(statusId, that.statusId) &&
                 Objects.equals(senderBankId, that.senderBankId) &&
                 Objects.equals(accountNumber, that.accountNumber) &&
-                Objects.equals(RecieverBankId, that.RecieverBankId) &&
-                Objects.equals(RecieverInn, that.RecieverInn) &&
-                Objects.equals(RecieverAccount, that.RecieverAccount) &&
+                Objects.equals(recieverBankId, that.recieverBankId) &&
+                Objects.equals(recieverInn, that.recieverInn) &&
+                Objects.equals(recieverAccount, that.recieverAccount) &&
                 Objects.equals(categoryId, that.categoryId) &&
-                Objects.equals(RecieverPhone, that.RecieverPhone) &&
+                Objects.equals(recieverPhone, that.recieverPhone) &&
                 Objects.equals(createdAt, that.createdAt) &&
                 Objects.equals(updatedAt, that.updatedAt);
     }
@@ -219,8 +219,8 @@ public class Transaction {
     @Override
     public int hashCode() {
         return Objects.hash(transactionId, userId, personTypeId, transactionDate, typeId, comment,
-                amount, statusId, senderBankId, accountNumber, RecieverBankId,
-                RecieverInn, RecieverAccount, categoryId, RecieverPhone, createdAt, updatedAt);
+                amount, statusId, senderBankId, accountNumber, recieverBankId,
+                recieverInn, recieverAccount, categoryId, recieverPhone, createdAt, updatedAt);
     }
 
     @Override
@@ -236,11 +236,11 @@ public class Transaction {
                 ", statusId=" + statusId +
                 ", senderBankId=" + senderBankId +
                 ", accountNumber='" + accountNumber + '\'' +
-                ", RecieverBankId=" + RecieverBankId +
-                ", RecieverInn='" + RecieverInn + '\'' +
-                ", RecieverAccount='" + RecieverAccount + '\'' +
+                ", recieverBankId=" + recieverBankId +
+                ", recieverInn='" + recieverInn + '\'' +
+                ", recieverAccount='" + recieverAccount + '\'' +
                 ", categoryId=" + categoryId +
-                ", RecieverPhone='" + RecieverPhone + '\'' +
+                ", recieverPhone='" + recieverPhone + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
