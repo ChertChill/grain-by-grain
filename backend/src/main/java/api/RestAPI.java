@@ -11,6 +11,7 @@ import io.jsonwebtoken.JwtException;
 import transactions.TransactionFilter;
 
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -97,7 +98,13 @@ public class RestAPI {
         try {
             //authorizationHandler либо возвращает JWT-токен, либо выкидывает ошибку.
             String loginResult = authorizationHandler.login(req.email, req.password);
-            ctx.status(201).json(Map.of("success", loginResult));
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("success", true);
+            response.put("loginResult", loginResult);
+            response.put("username", JWTHandler.getUser(loginResult).getUsername());
+
+            ctx.json(response);
+            ctx.status(201);
         } catch (IncorrectPasswordException e) {
             ctx.status(400).json(e.getMessage());
         }  catch (Exception e) {
