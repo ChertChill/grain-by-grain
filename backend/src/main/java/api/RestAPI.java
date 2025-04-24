@@ -96,7 +96,7 @@ public class RestAPI {
         loginData req = ctx.bodyAsClass(loginData.class);
         try {
             //authorizationHandler либо возвращает JWT-токен, либо выкидывает ошибку.
-            String loginResult = authorizationHandler.login(req.user_name, req.password);
+            String loginResult = authorizationHandler.login(req.email, req.password);
             ctx.status(201).json(Map.of("success", loginResult));
         } catch (IncorrectPasswordException e) {
             ctx.status(400).json(e.getMessage());
@@ -107,7 +107,7 @@ public class RestAPI {
 
     //промежуточные классы, необходимые для парсинга JSONа. Не содержат никакой логики.
     private static class loginData {
-        public String user_name;
+        public String email;
         public String password;
     }
 

@@ -18,13 +18,13 @@ public class AuthorizationHandler {
     static final int tokenExpirationTime = 60;
 
     //логин пользователя по логину/паролю
-    public String login(String user_name, String password) throws IncorrectPasswordException, SQLException {// время жизни (в минутах) токена авторизации
+    public String login(String username, String password) throws IncorrectPasswordException, SQLException {// время жизни (в минутах) токена авторизации
         //достаем из БД хэшированный пароль, проверяем его с введенным
-        String hashedPassword = getUserHashedPW(user_name);
+        String hashedPassword = getUserHashedPW(username);
         if (!BCrypt.checkpw(password, hashedPassword)) throw new IncorrectPasswordException("Wrong Password!");
 
         //грузим юзера из БД
-        User loggedUser = loadUser(user_name);
+        User loggedUser = loadUser(username);
 
         //устанавливаем конец жизни токена
         long now = System.currentTimeMillis();
@@ -40,16 +40,16 @@ public class AuthorizationHandler {
     }
 
     //загрузка юзера из БД
-    private User loadUser(String user_name) throws SQLException {
+    private User loadUser(String email) throws SQLException {
         String sql =
                 "SELECT user_id, user_name, email " +
                         "FROM users " +
-                        "WHERE user_name = ?";
+                        "WHERE email = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, user_name);
+            ps.setString(1, email);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) {
@@ -65,12 +65,12 @@ public class AuthorizationHandler {
     }
 
     //загрузка пароля из БД
-    private String getUserHashedPW(String user_name) throws IncorrectPasswordException, SQLException {
-        String sql = "SELECT password_hash FROM users WHERE user_name = ?";
+    private String getUserHashedPW(String email) throws IncorrectPasswordException, SQLException {
+        String sql = "SELECT password_hash FROM users WHERE email = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement statement = conn.prepareStatement(sql)) {
-            statement.setString(1, user_name);
+            statement.setString(1, email);
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) throw new IncorrectPasswordException("User not found!");
@@ -81,27 +81,27 @@ public class AuthorizationHandler {
     }
 
     //регистрация пользователя
-    public void register(String user_name, String password, String email) throws RegistrationInputException, SQLException {
+    public void register(String username, String password, String email) throws RegistrationInputException, SQLException {
         //проверки на валидность введенного пароля/доступность логина
         checkPasswordValidity(password);
-        checkNameValidity(user_name);
+        checkNameValidity(username);
         checkEmailValidity(email);
-        checkNameEmailExistence(user_name, email);
+        checkNameEmailExistence(username, email);
 
         //хэшируем пароль и добавляем юзера в БД
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-        insertUserIntoDB(user_name, hashedPassword, email);
+        insertUserIntoDB(username, hashedPassword, email);
     }
 
     //добавление юзера в БД
-    private void insertUserIntoDB(String user_name, String password, String email) throws SQLException {
+    private void insertUserIntoDB(String username, String password, String email) throws SQLException {
         String sql = "INSERT INTO users (user_name, password_hash, email) VALUES (?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             // Set the parameters in the PreparedStatement
-            pstmt.setString(1, user_name);   // Set user_name
+            pstmt.setString(1, username);   // Set username
             pstmt.setString(2, password);   // Set password (hashed password in real cases)
             pstmt.setString(3, email);      // Set email
 
@@ -123,24 +123,21 @@ public class AuthorizationHandler {
         // ...
     }
 
-    private void checkNameEmailExistence(String user_name, String email) throws RegistrationInputException, SQLException {
+    private void checkNameEmailExistence(String username, String email) throws RegistrationInputException, SQLException {
         String sql =
                 "SELECT " +
-                        "  EXISTS(SELECT 1 FROM users WHERE user_name = ?) AS username_exists, " +
                         "  EXISTS(SELECT 1 FROM users WHERE email = ?) AS email_exists";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, user_name);
-            ps.setString(2, email);
+            ps.setString(1, email);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    boolean usernameExists = rs.getBoolean("username_exists");
                     boolean emailExists = rs.getBoolean("email_exists");
 
-                    if (usernameExists || emailExists) {
+                    if (emailExists) {
                         throw new RegistrationInputException("Either Username or Email already exists!");
                     }
                 }
