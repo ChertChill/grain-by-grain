@@ -71,8 +71,7 @@ public class AuthorizationHandler {
         //проверки на валидность введенного пароля/доступность логина
         checkPasswordValidity(password);
         checkNameValidity(fullName);
-        checkEmailValidity(email);
-        checkNameEmailExistence(fullName, email);
+        checkEmailExistence(email);
 
         //хэшируем пароль и добавляем юзера в БД
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
@@ -110,7 +109,7 @@ public class AuthorizationHandler {
         // ...
     }
 
-    private void checkNameEmailExistence(String fullName, String email) throws RegistrationInputException, SQLException {
+    private void checkEmailExistence(String email) throws RegistrationInputException, SQLException {
         String sql =
                 "SELECT " +
                         "  EXISTS(SELECT 1 FROM users WHERE email = ?) AS email_exists";
@@ -133,13 +132,9 @@ public class AuthorizationHandler {
     }
 
     private void checkNameValidity(String name) throws RegistrationInputException {
-        if (name.length() < 2 || name.length() > 16)
-            throw new RegistrationInputException("Имя пользователя должно быть > 2 и < 16 символов.");
+        if (name.length() < 1)
+            throw new RegistrationInputException("ФИО не указано.");
         // другие проверки
         // ...
-    }
-
-    private void checkEmailValidity(String email) throws RegistrationInputException {
-        //проверка e-mail на символы
     }
 }

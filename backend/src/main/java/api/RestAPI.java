@@ -74,11 +74,11 @@ public class RestAPI {
             response.put("full_name", currentUser.getFullName());
             ctx.status(201).json(response);
         } catch (JwtException e) {
-            response.put("success", false);
+            response.put("valid", false);
             response.put("error", e.getMessage());
             ctx.status(400).json(response);
         } catch (Exception e) {
-            response.put("success", false);
+            response.put("valid", false);
             response.put("error", "UNEXPECTED ERROR: " + e.getMessage());
             ctx.status(400).json(response);
         }
