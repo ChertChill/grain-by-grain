@@ -127,7 +127,7 @@ public class AuthorizationHandler {
         String sql =
                 "SELECT " +
                         "  EXISTS(SELECT 1 FROM users WHERE user_name = ?) AS username_exists, " +
-                        "  EXISTS(SELECT 1 FROM users WHERE email     = ?) AS email_exists";
+                        "  EXISTS(SELECT 1 FROM users WHERE email = ?) AS email_exists";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -137,7 +137,12 @@ public class AuthorizationHandler {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    throw new RegistrationInputException("Either Username or Email already exists!");
+                    boolean usernameExists = rs.getBoolean("username_exists");
+                    boolean emailExists = rs.getBoolean("email_exists");
+
+                    if (usernameExists || emailExists) {
+                        throw new RegistrationInputException("Either Username or Email already exists!");
+                    }
                 }
             }
         }
