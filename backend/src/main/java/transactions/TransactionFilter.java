@@ -3,6 +3,7 @@ package transactions;
 import authorization.User;
 import database.DatabaseConnection;
 
+import java.math.BigInteger;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,12 +20,12 @@ public class TransactionFilter {
 
         if (filters.containsKey("amount")) {
             query.append(" AND amount = ?");
-            parameters.add(filters.get("amount").get(0)); // Assuming single value
+            parameters.add(Integer.valueOf(filters.get("amount").getFirst()));
         }
 
-        if (filters.containsKey("type")) {
-            query.append(" AND type = ?");
-            parameters.add(filters.get("type").get(0));
+        if (filters.containsKey("status_id")) {
+            query.append(" AND status_id = ?");
+            parameters.add(Integer.valueOf(filters.get("status_id").getFirst()));
         }
 
         try (PreparedStatement stmt = DatabaseConnection.getConnection().prepareStatement(query.toString())) {
@@ -32,10 +33,11 @@ public class TransactionFilter {
                 stmt.setObject(i + 1, parameters.get(i)); // Bind values safely
             }
 
+            System.out.println(stmt.toString());
             ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                transactions.add(mapResultSetToTransaction(rs));
-            }
+//            while (rs.next()) {
+//                transactions.add(mapResultSetToTransaction(rs));
+//            }
             return transactions;
         }
     }
