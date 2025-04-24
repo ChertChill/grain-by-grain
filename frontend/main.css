@@ -32,6 +32,7 @@ body {
     gap: 20px;
 
     position: fixed;
+    z-index: 1000;
     top: 0;
     width: 100%;
     padding: 12px 32px;
@@ -244,6 +245,16 @@ body {
         background: #FFDC8B;
     }
 
+        .block__title {
+            font-size: 20px;
+            font-weight: 500;
+            line-height: 120%;
+            color: #1E1E1E;
+
+            width: fit-content;
+            margin: 0 auto;
+        }
+
     #filter-buttons {
         display: flex;
         flex-wrap: nowrap;
@@ -339,13 +350,13 @@ body {
             }
 
             #ti-edit {
-                background: #FFF url('icons/edit-square.svg') center / 24px no-repeat;
+                background: #FFF url('./icons/edit-square.svg') center / 24px no-repeat;
             }
 
             #ti-apply {
-                background: #C6FFCA url('icons/check.svg') center / 24px no-repeat;
+                background: #C6FFCA url('./icons/check.svg') center / 24px no-repeat;
             }
 
             #ti-delete {
-                background: #FB5884 url('icons/delete.svg') center / 24px no-repeat;
+                background: #FB5884 url('./icons/delete.svg') center / 24px no-repeat;
             }

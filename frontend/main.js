@@ -12,10 +12,52 @@ const userInfo = document.getElementById('user-info');
 const userName = document.getElementById('user-name');
 const logoutButton = document.getElementById('logout-button');
 
+
+
 // Отображение модального окна при загрузке страницы если пользователь не авторизован
 document.addEventListener('DOMContentLoaded', checkAuthentication);
 
+
+
+// Функция проверки авторизации
+
+function checkAuthentication() {
+    const token = localStorage.getItem('authToken');
+
+    if (token) {
+        // Проверка валидности токена
+        fetch('http://localhost:7070/api/check_user', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    // Пользователь авторизован
+                    showAuthenticatedUI(data.full_name);
+                } else {
+                    // Токен недействителен
+                    localStorage.removeItem('authToken');
+                    showAuthModal();
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                localStorage.removeItem('authToken');
+                showAuthModal();
+            });
+    } else {
+        // Токен отсутствует, показать модальное окно
+        showAuthModal();
+    }
+}
+
+
+
 // Переключение между вкладками
+
 authTabs.forEach(tab => {
     tab.addEventListener('click', () => {
         const tabName = tab.getAttribute('data-tab');
@@ -38,56 +80,31 @@ authTabs.forEach(tab => {
     });
 });
 
-// Функция проверки авторизации
-function checkAuthentication() {
-    const token = localStorage.getItem('authToken');
 
-    if (token) {
-        // Проверка валидности токена
-        fetch('http://localhost:7070/api/verify-token', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.valid) {
-                    // Пользователь авторизован
-                    showAuthenticatedUI(data.user);
-                } else {
-                    // Токен недействителен
-                    localStorage.removeItem('authToken');
-                    showAuthModal();
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-                localStorage.removeItem('authToken');
-                showAuthModal();
-            });
-    } else {
-        // Токен отсутствует, показать модальное окно
-        showAuthModal();
-    }
-}
 
 // Отображение UI для авторизованного пользователя
-function showAuthenticatedUI(user) {
+
+function showAuthenticatedUI(username) {
     authModal.style.display = 'none';
     mainContent.style.display = 'block';
     userInfo.style.display = 'block';
-    userName.textContent = user?.name || 'Пользователь';
+    userName.textContent = username || 'Пользователь';
 }
 
+
+
 // Отображение модального окна аутентификации
+
 function showAuthModal() {
     authModal.style.display = 'flex';
     mainContent.style.display = 'none';
     userInfo.style.display = 'none';
 }
 
+
+
 // Обработка формы входа
+
 loginForm.addEventListener('submit', function (e) {
     e.preventDefault();
     const loginError = document.getElementById('login-error');
@@ -100,7 +117,7 @@ loginForm.addEventListener('submit', function (e) {
     fetch('http://localhost:7070/api/login', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({
             email: email,
@@ -112,10 +129,10 @@ loginForm.addEventListener('submit', function (e) {
             if (data.success) {
                 // Успешный вход
                 localStorage.setItem('authToken', data.token);
-                showAuthenticatedUI(data.user);
+                showAuthenticatedUI(data.full_name);
             } else {
                 // Ошибка входа
-                loginError.textContent = data.message || 'Неверный email или пароль';
+                loginError.textContent = data.error || 'Неверный email или пароль';
             }
         })
         .catch(error => {
@@ -124,13 +141,16 @@ loginForm.addEventListener('submit', function (e) {
         });
 });
 
+
+
 // Обработка формы регистрации
+
 registerForm.addEventListener('submit', function (e) {
     e.preventDefault();
     const registerError = document.getElementById('register-error');
     registerError.textContent = '';
 
-    const name = document.getElementById('register-name').value;
+    const fullname = document.getElementById('register-name').value;
     const email = document.getElementById('register-email').value;
     const password = document.getElementById('register-password').value;
     const passwordConfirm = document.getElementById('register-password-confirm').value;
@@ -145,23 +165,23 @@ registerForm.addEventListener('submit', function (e) {
     fetch('http://localhost:7070/api/register', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            name: name,
-            email: email,
-            password: password
+            full_name: fullname,
+            password: password,
+            email: email
         })
     })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Успешная регистрация и автоматический вход
+                // Успешный вход
                 localStorage.setItem('authToken', data.token);
-                showAuthenticatedUI(data.user);
+                showAuthenticatedUI(fullname);
             } else {
                 // Ошибка регистрации
-                registerError.textContent = data.message || 'Ошибка при регистрации';
+                registerError.textContent = data.error || 'Ошибка при регистрации';
             }
         })
         .catch(error => {
@@ -170,25 +190,11 @@ registerForm.addEventListener('submit', function (e) {
         });
 });
 
+
+
 // Обработка выхода из аккаунта
+
 logoutButton.addEventListener('click', () => {
-    // API запрос для выхода
-    fetch('http://localhost:7070/api/logout', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        }
-    })
-        .then(response => response.json())
-        .then(data => {
-            // Удаление токена из localStorage
-            localStorage.removeItem('authToken');
-            showAuthModal();
-        })
-        .catch(error => {
-            console.error('Ошибка:', error);
-            localStorage.removeItem('authToken');
-            showAuthModal();
-        });
+    localStorage.removeItem('authToken');
+    showAuthModal();
 });
