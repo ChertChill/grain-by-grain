@@ -18,23 +18,27 @@ public class AuthorizationHandler {
     static final int tokenExpirationTime = 60;
 
     //логин пользователя по логину/паролю
-    public String login(String username, String password) throws IncorrectPasswordException, SQLException {// время жизни (в минутах) токена авторизации
+    public String login(String fullName, String password) throws IncorrectPasswordException, SQLException {// время жизни (в минутах) токена авторизации
         //достаем из БД хэшированный пароль, проверяем его с введенным
-        String hashedPassword = getUserHashedPW(username);
+        String hashedPassword = getUserHashedPW(fullName);
         if (!BCrypt.checkpw(password, hashedPassword)) throw new IncorrectPasswordException("Wrong Password!");
 
         //грузим юзера из БД
-        User loggedUser = loadUser(username);
+        User loggedUser = loadUser(fullName);
 
         //устанавливаем конец жизни токена
+        return createUserToken(loggedUser);
+    }
+
+    private String createUserToken(User user) {
         long now = System.currentTimeMillis();
         Date expirationDate = new Date(now + (tokenExpirationTime*60*1000));
 
         //создаем и возвращаем токен авторизации
         return Jwts.builder()
-                .subject(loggedUser.getUsername())
-                .id(String.valueOf(loggedUser.getId()))
-                .claim("email", loggedUser.getEmail())
+                .subject(user.getFullName())
+                .id(String.valueOf(user.getId()))
+                .claim("email", user.getEmail())
                 .expiration(expirationDate)
                 .signWith(key).compact();
     }
@@ -56,10 +60,10 @@ public class AuthorizationHandler {
                     throw new SQLException("User not found!");
                 }
                 long id = rs.getInt   ("user_id");
-                String user = rs.getString("user_name");
+                String fullName = rs.getString("user_name");
                 String mail = rs.getString("email");
 
-                return new User(id, user, mail);
+                return new User(id, fullName, mail);
             }
         }
     }
@@ -81,27 +85,28 @@ public class AuthorizationHandler {
     }
 
     //регистрация пользователя
-    public void register(String username, String password, String email) throws RegistrationInputException, SQLException {
+    public String register(String fullName, String password, String email) throws RegistrationInputException, SQLException {
         //проверки на валидность введенного пароля/доступность логина
         checkPasswordValidity(password);
-        checkNameValidity(username);
+        checkNameValidity(fullName);
         checkEmailValidity(email);
-        checkNameEmailExistence(username, email);
+        checkNameEmailExistence(fullName, email);
 
         //хэшируем пароль и добавляем юзера в БД
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-        insertUserIntoDB(username, hashedPassword, email);
+        insertUserIntoDB(fullName, hashedPassword, email);
+        return createUserToken(loadUser(email));
     }
 
     //добавление юзера в БД
-    private void insertUserIntoDB(String username, String password, String email) throws SQLException {
+    private void insertUserIntoDB(String fullName, String password, String email) throws SQLException {
         String sql = "INSERT INTO users (user_name, password_hash, email) VALUES (?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             // Set the parameters in the PreparedStatement
-            pstmt.setString(1, username);   // Set username
+            pstmt.setString(1, fullName);   // Set username
             pstmt.setString(2, password);   // Set password (hashed password in real cases)
             pstmt.setString(3, email);      // Set email
 
@@ -123,7 +128,7 @@ public class AuthorizationHandler {
         // ...
     }
 
-    private void checkNameEmailExistence(String username, String email) throws RegistrationInputException, SQLException {
+    private void checkNameEmailExistence(String fullName, String email) throws RegistrationInputException, SQLException {
         String sql =
                 "SELECT " +
                         "  EXISTS(SELECT 1 FROM users WHERE email = ?) AS email_exists";

@@ -69,7 +69,10 @@ public class RestAPI {
         String token = authHeader.substring(7);
         try {
             User currentUser = JWTHandler.getUser(token);
-            ctx.status(201).json(currentUser);
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("valid", true);
+            response.put("full_name", currentUser.getFullName());
+            ctx.status(201).json(response);
         } catch (JwtException e) {
             ctx.status(400).json(e.getMessage());
         }
@@ -82,8 +85,11 @@ public class RestAPI {
         registerData req = ctx.bodyAsClass(registerData.class);
         try {
             //запрос на регистрацию в authorizationHandler, который проведет все проверки/хэш пароля
-            authorizationHandler.register(req.user_name, req.password, req.email);
-            ctx.status(201).json(Map.of("success", true));
+            String authToken = authorizationHandler.register(req.full_name, req.password, req.email);
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("success", true);
+            response.put("token", authToken);
+            ctx.status(201).json(response);
         } catch (RegistrationInputException e) {
             ctx.status(400).json(e.getMessage());
         } catch (Exception e) {
@@ -97,14 +103,13 @@ public class RestAPI {
         loginData req = ctx.bodyAsClass(loginData.class);
         try {
             //authorizationHandler либо возвращает JWT-токен, либо выкидывает ошибку.
-            String loginResult = authorizationHandler.login(req.email, req.password);
+            String authToken = authorizationHandler.login(req.email, req.password);
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("success", true);
-            response.put("token", loginResult);
-            response.put("username", JWTHandler.getUser(loginResult).getUsername());
+            response.put("token", authToken);
+            response.put("full_name", JWTHandler.getUser(authToken).getFullName());
 
-            ctx.json(response);
-            ctx.status(201);
+            ctx.status(201).json(response);
         } catch (IncorrectPasswordException e) {
             ctx.status(400).json(e.getMessage());
         }  catch (Exception e) {
@@ -119,7 +124,7 @@ public class RestAPI {
     }
 
     private static class registerData {
-        public String user_name;
+        public String full_name;
         public String email;
         public String password;
     }
