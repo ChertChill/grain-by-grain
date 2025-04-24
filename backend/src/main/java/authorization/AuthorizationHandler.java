@@ -12,11 +12,6 @@ import java.util.Date;
 
 public class AuthorizationHandler {
 
-    //секретный ключ, необходимый для подписи/верификации JWT-токенов
-    //по хорошему, вынести в отдельный файл конфигурации
-    static SecretKey key = Jwts.SIG.HS256.key().build();
-    static final int tokenExpirationTime = 60;
-
     //логин пользователя по логину/паролю
     public String login(String fullName, String password) throws IncorrectPasswordException, SQLException {// время жизни (в минутах) токена авторизации
         //достаем из БД хэшированный пароль, проверяем его с введенным
@@ -27,20 +22,7 @@ public class AuthorizationHandler {
         User loggedUser = loadUser(fullName);
 
         //устанавливаем конец жизни токена
-        return createUserToken(loggedUser);
-    }
-
-    private String createUserToken(User user) {
-        long now = System.currentTimeMillis();
-        Date expirationDate = new Date(now + (tokenExpirationTime*60*1000));
-
-        //создаем и возвращаем токен авторизации
-        return Jwts.builder()
-                .subject(user.getFullName())
-                .id(String.valueOf(user.getId()))
-                .claim("email", user.getEmail())
-                .expiration(expirationDate)
-                .signWith(key).compact();
+        return JWTHandler.createUserToken(loggedUser);
     }
 
     //загрузка юзера из БД
@@ -95,7 +77,7 @@ public class AuthorizationHandler {
         //хэшируем пароль и добавляем юзера в БД
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         insertUserIntoDB(fullName, hashedPassword, email);
-        return createUserToken(loadUser(email));
+        return JWTHandler.createUserToken(loadUser(email));
     }
 
     //добавление юзера в БД
