@@ -60,7 +60,12 @@ public class RestAPI {
 
     //выдает всю информацию по авторизованному юзеру (через JWT-токен)
     private static void checkUser(Context ctx) {
-        String token = ctx.body();
+        String authHeader = ctx.header("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            ctx.status(400).json("Missing or invalid Authorization header");
+            return;
+        }
+        String token = authHeader.substring(7);
         try {
             User currentUser = JWTHandler.getUser(token);
             ctx.status(201).json(currentUser);
