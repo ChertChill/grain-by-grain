@@ -171,7 +171,9 @@
             <!-- Период -->
 
             <div id="filter-period" class="block">
-                [ Период ]
+                <div class="sub-title">
+                    Период
+                </div>
 
                 <!-- [ ] -->
             </div>
@@ -181,7 +183,9 @@
             <!-- Параметры -->
 
             <div id="filter-parameter" class="block">
-                [ Параметры ]
+                <div class="sub-title">
+                    Параметры
+                </div>
 
                 <!-- [] -->
             </div>
@@ -208,169 +212,156 @@
 
 
 
-        <!-- Блок - Сводка -->
-        <!-- !!! Переделать под табы -->
-    
+        <!-- Блок - Сводка и Дашборды -->
+
         <div id="summary">
+    
+            <input checked type="radio" name="expand" id="button-1" class="checkbox">
+            <label for="button-1" id="summary-account" class="block">
+                <div class="title center">
+                    Сводка по&nbsp;счету
+                </div>
+            </label>
+            <div id="account-summary-container" class="tabs-content">
 
-            <!-- Сводка по счету -->
+                <!-- Блок - Сводка по счету -->
 
-            <div id="summary-account" class="block">
-                <div class="block__title">
-                    Сводка по счету
+                <div class="dashboard-summary">
+                    <div class="summary-item">
+                        <div class="summary-label">Всего транзакций</div>
+                        <div class="summary-value">8920</div>
+                        <div class="summary-trend trend-up">+12% за месяц</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Сумма поступлений</div>
+                        <div class="summary-value">1,450,800 ₽</div>
+                        <div class="summary-trend trend-up">+8% за месяц</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Сумма расходов</div>
+                        <div class="summary-value">980,500 ₽</div>
+                        <div class="summary-trend trend-down">+5% за месяц</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Баланс</div>
+                        <div class="summary-value">470,300 ₽</div>
+                        <div class="summary-trend trend-up">+15% за месяц</div>
+                    </div>
                 </div>
 
-                <!-- [ ] -->
+                <!-- // Блок - Сводка по счету -->
+
             </div>
 
-
-
-            <!-- Дашборды -->
-
-            <div id="summary-dashboard" class="block">
-                <div class="block__title">
+            <input type="radio" name="expand" id="button-2" class="checkbox">
+            <label for="button-2" id="summary-dashboard" class="block">
+                <div class="title center">
                     Дашборды
                 </div>
+            </label>
+            <div id="dashboard-container" class="tabs-content">
 
-                <!-- [] -->
-            </div>
-
-        </div>
-
-
-
-        <!-- Блок - Сводка по счету -->
-        
-        <div id="account-summary-container">
-            <h2 class="dashboard-title">Сводка по счету</h2>
-            
-            <!-- Сводка дашборда -->
-            <div class="dashboard-summary">
-                <div class="summary-item">
-                    <div class="summary-label">Всего транзакций</div>
-                    <div class="summary-value">8920</div>
-                    <div class="summary-trend trend-up">+12% за месяц</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-label">Сумма поступлений</div>
-                    <div class="summary-value">1,450,800 ₽</div>
-                    <div class="summary-trend trend-up">+8% за месяц</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-label">Сумма расходов</div>
-                    <div class="summary-value">980,500 ₽</div>
-                    <div class="summary-trend trend-down">+5% за месяц</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-label">Баланс</div>
-                    <div class="summary-value">470,300 ₽</div>
-                    <div class="summary-trend trend-up">+15% за месяц</div>
-                </div>
-            </div>
-        </div>
-
-
-
-        <!-- Блок - Дашборд с графиками -->
-        
-        <div id="dashboard-container">
-            <h2 class="dashboard-title">Аналитический дашборд</h2>
-            
-            <!-- Сетка с графиками -->
-            <div class="dashboard-grid">
-                <!-- График 1: Динамика по количеству транзакций -->
-                <div class="dashboard-card full-width">
-                    <div class="dashboard-card-title">
-                        Динамика по количеству транзакций
-                        <!-- Элементы управления дашбордом -->
-                        <div class="dashboard-controls">
-                            <div class="dashboard-control-item">
-                                <label for="period-selector">Период анализа:</label>
-                                <select id="period-selector">
-                                    <option value="0">Еженедельно</option>
-                                    <option value="1" selected>Ежемесячно</option>
-                                    <option value="2">Ежеквартально</option>
-                                    <option value="3">Ежегодно</option>
-                                </select>
+                <!-- Блок - Дашборд с графиками -->
+                
+                <div class="dashboard-grid">
+                    <!-- График 1: Динамика по количеству транзакций -->
+                    <div class="dashboard-card full-width">
+                        <div class="dashboard-card-title">
+                            Динамика по количеству транзакций
+                            <!-- Элементы управления дашбордом -->
+                            <div class="dashboard-controls">
+                                <div class="dashboard-control-item">
+                                    <label for="period-selector">Период анализа:</label>
+                                    <select id="period-selector">
+                                        <option value="0">Еженедельно</option>
+                                        <option value="1" selected>Ежемесячно</option>
+                                        <option value="2">Ежеквартально</option>
+                                        <option value="3">Ежегодно</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dashboard-card-body">
+                            <div class="chart-container">
+                                <canvas id="transactions-by-period-chart"></canvas>
                             </div>
                         </div>
                     </div>
-                    <div class="dashboard-card-body">
-                        <div class="chart-container">
-                            <canvas id="transactions-by-period-chart"></canvas>
+                    
+                    <!-- График 2: Динамика по типу транзакции -->
+                    <div class="dashboard-card full-width">
+                        <div class="dashboard-card-title">Динамика по типу транзакции</div>
+                        
+                        <div class="dashboard-card-wrapper">
+                            <div class="dashboard-card-body">
+                                <div class="chart-container">
+                                    <canvas id="debit-transactions-chart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="dashboard-card-body">
+                                <div class="chart-container">
+                                    <canvas id="credit-transactions-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- [ ] -->
+                    
+                    <!-- График 4: Сравнение поступлений и расходов -->
+                    <div class="dashboard-card full-width">
+                        <div class="dashboard-card-title">Сравнение поступлений и расходов</div>
+                        <div class="dashboard-card-body">
+                            <div class="chart-container">
+                                <canvas id="income-expense-comparison-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- График 5: Статус транзакций -->
+                    <div class="dashboard-card half-width">
+                        <div class="dashboard-card-title">Статус транзакций</div>
+                        <div class="dashboard-card-body">
+                            <div class="chart-container">
+                                <canvas id="transaction-status-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- График 6: Статистика по банкам -->
+                    <div class="dashboard-card half-width">
+                        <div class="dashboard-card-title">Статистика по банкам</div>
+                        <div class="dashboard-card-body">
+                            <div class="chart-container">
+                                <canvas id="bank-statistics-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- График 7: Категории расходов -->
+                    <div class="dashboard-card half-width">
+                        <div class="dashboard-card-title">Категории расходов</div>
+                        <div class="dashboard-card-body">
+                            <div class="chart-container">
+                                <canvas id="expense-categories-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- График 8: Категории поступлений -->
+                    <div class="dashboard-card half-width">
+                        <div class="dashboard-card-title">Категории поступлений</div>
+                        <div class="dashboard-card-body">
+                            <div class="chart-container">
+                                <canvas id="income-categories-chart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- График 2: Динамика по дебетовым транзакциям -->
-                <div class="dashboard-card half-width">
-                    <div class="dashboard-card-title">Дебетовые транзакции</div>
-                    <div class="dashboard-card-body">
-                        <div class="chart-container">
-                            <canvas id="debit-transactions-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- График 3: Динамика по кредитовым транзакциям -->
-                <div class="dashboard-card half-width">
-                    <div class="dashboard-card-title">Кредитовые транзакции</div>
-                    <div class="dashboard-card-body">
-                        <div class="chart-container">
-                            <canvas id="credit-transactions-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- График 4: Сравнение поступлений и расходов -->
-                <div class="dashboard-card full-width">
-                    <div class="dashboard-card-title">Сравнение поступлений и расходов</div>
-                    <div class="dashboard-card-body">
-                        <div class="chart-container">
-                            <canvas id="income-expense-comparison-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- График 5: Статус транзакций -->
-                <div class="dashboard-card half-width">
-                    <div class="dashboard-card-title">Статус транзакций</div>
-                    <div class="dashboard-card-body">
-                        <div class="chart-container">
-                            <canvas id="transaction-status-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- График 6: Статистика по банкам -->
-                <div class="dashboard-card half-width">
-                    <div class="dashboard-card-title">Статистика по банкам</div>
-                    <div class="dashboard-card-body">
-                        <div class="chart-container">
-                            <canvas id="bank-statistics-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- График 7: Категории расходов -->
-                <div class="dashboard-card half-width">
-                    <div class="dashboard-card-title">Категории расходов</div>
-                    <div class="dashboard-card-body">
-                        <div class="chart-container">
-                            <canvas id="expense-categories-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- График 8: Категории поступлений -->
-                <div class="dashboard-card half-width">
-                    <div class="dashboard-card-title">Категории поступлений</div>
-                    <div class="dashboard-card-body">
-                        <div class="chart-container">
-                            <canvas id="income-categories-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
+
+                <!-- // Блок - Дашборд с графиками -->
+
             </div>
         </div>
 
@@ -383,36 +374,45 @@
             <!-- Новая транзакция -->
 
             <div id="transaction-new" class="transaction-item">
-                <div class="ti__title">
-                    [ Создать новую транзакцию ]
+                <div class="title center">
+                    Создать новую транзакцию
                 </div>
 
                 <!-- [ ] -->
             </div>
 
-            <div class="transaction-item">
-                <div class="ti-content">
-                    <div class="ti__title">
-                        [ Транзакция 1 ]
+            <div id="transactions-list">
+
+                <div class="transaction-item">
+                    <div class="ti-content">
+                        <div class="sub-title">
+                            [ Транзакция 1 ]
+                        </div>
+
+                        <!-- [ ] -->
                     </div>
 
-                    <!-- [ ] -->
+                    <div class="ti-buttons">
+                        <div id="ti-edit" class="ti__button"></div>
+                        <div id="ti-apply" class="ti__button"></div>
+                        <div id="ti-delete" class="ti__button"></div>
+                    </div>
                 </div>
 
-                <div class="ti-buttons">
-                    <div id="ti-edit" class="ti__button"></div>
+                <!-- [ ] -->
 
-                    <div id="ti-apply" class="ti__button"></div>
+                <div id="transactions-error" class="error-message"></div>
 
-                    <div id="ti-delete" class="ti__button"></div>
-                </div>
             </div>
 
         </div>
+
+
 
     </div>
 
     <script src='frontend/main.js'></script>
     <script src='frontend/dashboard.js'></script>
+    <script src='frontend/transactions.js'></script>
 </body>
 </html>

@@ -1,6 +1,9 @@
 // Dashboard functionality
 document.addEventListener('DOMContentLoaded', initDashboard);
 
+// Store chart instances
+let charts = {};
+
 // Main initialization function
 function initDashboard() {
     // Only initialize if the dashboard container exists
@@ -13,14 +16,26 @@ function initDashboard() {
         const data = generateMockData();
         
         // Initialize all charts
-        createTransactionsByPeriodChart(data);
-        createDebitTransactionsChart(data);
-        createCreditTransactionsChart(data);
-        createIncomeExpenseComparisonChart(data);
-        createTransactionStatusChart(data);
-        createBankStatisticsChart(data);
-        createExpenseCategoriesChart(data);
-        createIncomeCategoriesChart(data);
+        charts.transactionsByPeriod = createTransactionsByPeriodChart(data);
+        charts.debitTransactions = createDebitTransactionsChart(data);
+        charts.creditTransactions = createCreditTransactionsChart(data);
+        charts.incomeExpenseComparison = createIncomeExpenseComparisonChart(data);
+        charts.transactionStatus = createTransactionStatusChart(data);
+        charts.bankStatistics = createBankStatisticsChart(data);
+        charts.expenseCategories = createExpenseCategoriesChart(data);
+        charts.incomeCategories = createIncomeCategoriesChart(data);
+
+        // Add window resize handler
+        window.addEventListener('resize', handleResize);
+    });
+}
+
+// Handle window resize
+function handleResize() {
+    Object.values(charts).forEach(chart => {
+        if (chart) {
+            chart.resize();
+        }
     });
 }
 
@@ -142,6 +157,7 @@ function createTransactionsByPeriodChart(data) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 title: {
                     display: true,
@@ -152,6 +168,10 @@ function createTransactionsByPeriodChart(data) {
                 },
                 legend: {
                     position: 'top',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10
+                    }
                 }
             },
             scales: {
@@ -160,12 +180,22 @@ function createTransactionsByPeriodChart(data) {
                     title: {
                         display: true,
                         text: 'Количество транзакций'
+                    },
+                    ticks: {
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 5
                     }
                 },
                 x: {
                     title: {
                         display: true,
                         text: 'Период'
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        autoSkip: true,
+                        maxTicksLimit: 6
                     }
                 }
             }
@@ -183,13 +213,15 @@ function createTransactionsByPeriodChart(data) {
             chart.update();
         });
     }
+
+    return chart;
 }
 
 // Create chart for debit transactions 
 function createDebitTransactionsChart(data) {
     const ctx = document.getElementById('debit-transactions-chart').getContext('2d');
     
-    new Chart(ctx, {
+    const chart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: data.transactionsByType.debit.labels,
@@ -203,6 +235,7 @@ function createDebitTransactionsChart(data) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 title: {
                     display: true,
@@ -210,6 +243,9 @@ function createDebitTransactionsChart(data) {
                     font: {
                         size: 16
                     }
+                },
+                legend: {
+                    display: false
                 }
             },
             scales: {
@@ -218,24 +254,36 @@ function createDebitTransactionsChart(data) {
                     title: {
                         display: true,
                         text: 'Количество транзакций'
+                    },
+                    ticks: {
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 5
                     }
                 },
                 x: {
                     title: {
                         display: true,
                         text: 'Месяц'
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        autoSkip: true,
+                        maxTicksLimit: 6
                     }
                 }
             }
         }
     });
+
+    return chart;
 }
 
 // Create chart for credit transactions
 function createCreditTransactionsChart(data) {
     const ctx = document.getElementById('credit-transactions-chart').getContext('2d');
     
-    new Chart(ctx, {
+    const chart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: data.transactionsByType.credit.labels,
@@ -249,6 +297,7 @@ function createCreditTransactionsChart(data) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 title: {
                     display: true,
@@ -256,6 +305,9 @@ function createCreditTransactionsChart(data) {
                     font: {
                         size: 16
                     }
+                },
+                legend: {
+                    display: false
                 }
             },
             scales: {
@@ -264,51 +316,69 @@ function createCreditTransactionsChart(data) {
                     title: {
                         display: true,
                         text: 'Количество транзакций'
+                    },
+                    ticks: {
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 5
                     }
                 },
                 x: {
                     title: {
                         display: true,
                         text: 'Месяц'
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        autoSkip: true,
+                        maxTicksLimit: 6
                     }
                 }
             }
         }
     });
+
+    return chart;
 }
 
-// Create chart comparing income vs expense
+// Create chart for income vs expense comparison
 function createIncomeExpenseComparisonChart(data) {
     const ctx = document.getElementById('income-expense-comparison-chart').getContext('2d');
     
-    new Chart(ctx, {
-        type: 'line',
+    const chart = new Chart(ctx, {
+        type: 'bar',
         data: {
             labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
             datasets: [{
                 label: 'Поступления',
                 data: data.incomeVsExpense.income,
+                backgroundColor: 'rgba(75, 192, 192, 0.7)',
                 borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                fill: true,
-                tension: 0.4
+                borderWidth: 1
             }, {
                 label: 'Расходы',
                 data: data.incomeVsExpense.expense,
+                backgroundColor: 'rgba(255, 99, 132, 0.7)',
                 borderColor: 'rgba(255, 99, 132, 1)',
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                fill: true,
-                tension: 0.4
+                borderWidth: 1
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 title: {
                     display: true,
                     text: 'Сравнение поступлений и расходов',
                     font: {
                         size: 16
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10
                     }
                 }
             },
@@ -318,27 +388,39 @@ function createIncomeExpenseComparisonChart(data) {
                     title: {
                         display: true,
                         text: 'Сумма (₽)'
+                    },
+                    ticks: {
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 5
                     }
                 },
                 x: {
                     title: {
                         display: true,
                         text: 'Месяц'
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        autoSkip: true,
+                        maxTicksLimit: 6
                     }
                 }
             }
         }
     });
+
+    return chart;
 }
 
-// Create chart for transaction status (completed vs cancelled)
+// Create chart for transaction status
 function createTransactionStatusChart(data) {
     const ctx = document.getElementById('transaction-status-chart').getContext('2d');
     
-    new Chart(ctx, {
+    const chart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Проведенные', 'Отмененные'],
+            labels: ['Завершено', 'Отменено'],
             datasets: [{
                 data: [data.transactionStatus.completed, data.transactionStatus.cancelled],
                 backgroundColor: [
@@ -354,6 +436,7 @@ function createTransactionStatusChart(data) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 title: {
                     display: true,
@@ -362,43 +445,37 @@ function createTransactionStatusChart(data) {
                         size: 16
                     }
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.raw || 0;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / total) * 100);
-                            return `${label}: ${value} (${percentage}%)`;
-                        }
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10
                     }
                 }
             }
         }
     });
+
+    return chart;
 }
 
 // Create chart for bank statistics
 function createBankStatisticsChart(data) {
     const ctx = document.getElementById('bank-statistics-chart').getContext('2d');
     
-    const banks = Object.keys(data.bankStatistics.sender);
-    const senderValues = Object.values(data.bankStatistics.sender);
-    const receiverValues = Object.values(data.bankStatistics.receiver);
-    
-    new Chart(ctx, {
+    const chart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: banks,
+            labels: Object.keys(data.bankStatistics.sender),
             datasets: [{
-                label: 'Банк отправителя',
-                data: senderValues,
-                backgroundColor: 'rgba(153, 102, 255, 0.7)',
-                borderColor: 'rgba(153, 102, 255, 1)',
+                label: 'Отправитель',
+                data: Object.values(data.bankStatistics.sender),
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1
             }, {
-                label: 'Банк получателя',
-                data: receiverValues,
+                label: 'Получатель',
+                data: Object.values(data.bankStatistics.receiver),
                 backgroundColor: 'rgba(255, 159, 64, 0.7)',
                 borderColor: 'rgba(255, 159, 64, 1)',
                 borderWidth: 1
@@ -406,12 +483,20 @@ function createBankStatisticsChart(data) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 title: {
                     display: true,
                     text: 'Статистика по банкам',
                     font: {
                         size: 16
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10
                     }
                 }
             },
@@ -421,32 +506,37 @@ function createBankStatisticsChart(data) {
                     title: {
                         display: true,
                         text: 'Количество транзакций'
+                    },
+                    ticks: {
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 5
                     }
                 },
                 x: {
-                    title: {
-                        display: true,
-                        text: 'Банк'
+                    ticks: {
+                        maxRotation: 45,
+                        autoSkip: true,
+                        maxTicksLimit: 6
                     }
                 }
             }
         }
     });
+
+    return chart;
 }
 
 // Create chart for expense categories
 function createExpenseCategoriesChart(data) {
     const ctx = document.getElementById('expense-categories-chart').getContext('2d');
     
-    const categories = Object.keys(data.categories.expense);
-    const values = Object.values(data.categories.expense);
-    
-    new Chart(ctx, {
+    const chart = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: categories,
+            labels: Object.keys(data.categories.expense),
             datasets: [{
-                data: values,
+                data: Object.values(data.categories.expense),
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.7)',
                     'rgba(54, 162, 235, 0.7)',
@@ -470,6 +560,7 @@ function createExpenseCategoriesChart(data) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 title: {
                     display: true,
@@ -478,54 +569,50 @@ function createExpenseCategoriesChart(data) {
                         size: 16
                     }
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.raw || 0;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / total) * 100);
-                            return `${label}: ${value}₽ (${percentage}%)`;
-                        }
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10
                     }
                 }
             }
         }
     });
+
+    return chart;
 }
 
 // Create chart for income categories
 function createIncomeCategoriesChart(data) {
     const ctx = document.getElementById('income-categories-chart').getContext('2d');
     
-    const categories = Object.keys(data.categories.income);
-    const values = Object.values(data.categories.income);
-    
-    new Chart(ctx, {
+    const chart = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: categories,
+            labels: Object.keys(data.categories.income),
             datasets: [{
-                data: values,
+                data: Object.values(data.categories.income),
                 backgroundColor: [
                     'rgba(75, 192, 192, 0.7)',
                     'rgba(54, 162, 235, 0.7)',
-                    'rgba(153, 102, 255, 0.7)',
-                    'rgba(255, 159, 64, 0.7)',
-                    'rgba(199, 199, 199, 0.7)'
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(153, 102, 255, 0.7)'
                 ],
                 borderColor: [
                     'rgba(75, 192, 192, 1)',
                     'rgba(54, 162, 235, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)',
-                    'rgba(199, 199, 199, 1)'
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(153, 102, 255, 1)'
                 ],
                 borderWidth: 1
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 title: {
                     display: true,
@@ -534,18 +621,16 @@ function createIncomeCategoriesChart(data) {
                         size: 16
                     }
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.raw || 0;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / total) * 100);
-                            return `${label}: ${value}₽ (${percentage}%)`;
-                        }
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10
                     }
                 }
             }
         }
     });
+
+    return chart;
 } 

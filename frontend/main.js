@@ -1,19 +1,3 @@
-// Обработка модального окна аутентификации
-const authModal = document.getElementById('auth-modal');
-const authTabs = document.querySelectorAll('.auth-tab');
-const authForms = document.querySelectorAll('.auth-form');
-
-const loginForm = document.getElementById('login-form-element');
-const registerForm = document.getElementById('register-form-element');
-
-const mainContent = document.getElementById('wrapper');
-
-const userInfo = document.getElementById('user-info');
-const userName = document.getElementById('user-name');
-const logoutButton = document.getElementById('logout-button');
-
-
-
 // Отображение модального окна при загрузке страницы если пользователь не авторизован
 document.addEventListener('DOMContentLoaded', checkAuthentication);
 
@@ -58,6 +42,10 @@ function checkAuthentication() {
 
 // Переключение между вкладками
 
+const authModal = document.getElementById('auth-modal');
+const authTabs = document.querySelectorAll('.auth-tab');
+const authForms = document.querySelectorAll('.auth-form');
+
 authTabs.forEach(tab => {
     tab.addEventListener('click', () => {
         const tabName = tab.getAttribute('data-tab');
@@ -82,7 +70,13 @@ authTabs.forEach(tab => {
 
 
 
-// Отображение UI для авторизованного пользователя
+// Отображение UI
+
+const mainContent = document.getElementById('wrapper');
+const userInfo = document.getElementById('user-info');
+const userName = document.getElementById('user-name');
+
+// Отображение UI приложения после успешной аутентификации
 
 function showAuthenticatedUI(username) {
     authModal.style.display = 'none';
@@ -90,8 +84,6 @@ function showAuthenticatedUI(username) {
     userInfo.style.display = 'block';
     userName.textContent = username || 'Пользователь';
 }
-
-
 
 // Отображение модального окна аутентификации
 
@@ -104,6 +96,8 @@ function showAuthModal() {
 
 
 // Обработка формы входа
+
+const loginForm = document.getElementById('login-form-element');
 
 loginForm.addEventListener('submit', function (e) {
     e.preventDefault();
@@ -144,6 +138,8 @@ loginForm.addEventListener('submit', function (e) {
 
 
 // Обработка формы регистрации
+
+const registerForm = document.getElementById('register-form-element');
 
 registerForm.addEventListener('submit', function (e) {
     e.preventDefault();
@@ -193,6 +189,8 @@ registerForm.addEventListener('submit', function (e) {
 
 
 // Обработка выхода из аккаунта
+
+const logoutButton = document.getElementById('logout-button');
 
 logoutButton.addEventListener('click', () => {
     localStorage.removeItem('authToken');
