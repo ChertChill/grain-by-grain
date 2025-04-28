@@ -5,7 +5,6 @@ import database.DatabaseConnection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 public class Transaction {
     private Long transactionID;
@@ -20,7 +19,7 @@ public class Transaction {
     private String recipientNumber;
     private String bank;
     private Long recipientTIN;
-    private String phone;
+    private String recipientPhone;
     private int categoryID;
     private int legalTypeID;
 
@@ -29,7 +28,7 @@ public class Transaction {
     public Transaction(Long transactionID, int typeID, int amount, String comment, int statusID,
                        LocalDateTime transactionDate, LocalDateTime createdAt, Long userID,
                        String accountNumber, String recipientNumber, String bank, Long recipientTIN,
-                       String phone, int categoryID, int legalTypeID) {
+                       String recipientPhone, int categoryID, int legalTypeID) {
         this.transactionID = transactionID;
         this.typeID = typeID;
         this.amount = amount;
@@ -42,7 +41,7 @@ public class Transaction {
         this.recipientNumber = recipientNumber;
         this.bank = bank;
         this.recipientTIN = recipientTIN;
-        this.phone = phone;
+        this.recipientPhone = recipientPhone;
         this.categoryID = categoryID;
         this.legalTypeID = legalTypeID;
     }
@@ -147,12 +146,12 @@ public class Transaction {
         this.recipientTIN = recipientTIN;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getRecipientPhone() {
+        return recipientPhone;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setRecipientPhone(String recipientPhone) {
+        this.recipientPhone = recipientPhone;
     }
 
     public int getCategoryID() {
@@ -186,7 +185,7 @@ public class Transaction {
                 recipient_number,
                 bank,
                 recipient_tin,
-                phone,
+                recipient_phone,
                 category_id,
                 legal_type_id
         ) VALUES (
@@ -207,7 +206,7 @@ public class Transaction {
             ps.setString (idx++, this.getRecipientNumber());    // recipient_number
             ps.setString (idx++, this.getBank());               // bank
             ps.setLong    (idx++, this.getRecipientTIN());       // recipient_tin
-            ps.setString (idx++, this.getPhone());              // phone
+            ps.setString (idx++, this.getRecipientPhone());              // phone
             ps.setInt    (idx++, this.getCategoryID());         // category_id
             ps.setInt    (idx++, this.getLegalTypeID());        // legal_type_id
 
