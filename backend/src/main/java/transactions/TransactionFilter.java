@@ -1,48 +1,61 @@
 package transactions;
 
 import authorization.User;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import database.DataLoader;
 import database.DatabaseConnection;
+import io.javalin.http.util.JsonEscapeUtil;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.time.Year;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.WeekFields;
 import java.util.*;
 
 public class TransactionFilter {
+    private final String greater_identificator = "-gt";
+    private final String less_identificator = "-lw";
+    private final String num_identificator = "-num";
+
     public List<Transaction> getUserTransactions(User user, Map<String, List<String>> filters) throws SQLException {
         StringBuilder query = new StringBuilder("SELECT * FROM transactions WHERE user_id = ?");
         List<Object> parameters = new ArrayList<>();
         List<Transaction> transactions = new ArrayList<>();
         parameters.add(user.getId());
 
-        if (filters.containsKey("amount")) {
-            query.append(" AND amount = ?");
-            parameters.add(Integer.valueOf(filters.get("amount").getFirst()));
+        if (!filters.isEmpty()) {
+            for (Map.Entry<String, List<String>> entry : filters.entrySet()) {
+                String key = entry.getKey();
+                String val = entry.getValue().getFirst();
+
+                String operator = "=";
+
+                if (key.contains(greater_identificator)) {
+                    operator = ">=";
+                    key = key.replace(greater_identificator, "");
+                    parameters.add(Integer.parseInt(val));
+                } else if (key.contains(less_identificator)) {
+                    operator = "<=";
+                    key = key.replace(less_identificator, "");
+                    parameters.add(Integer.parseInt(val));
+                } else if (key.contains(num_identificator)) {
+                    key = key.replace(num_identificator, "");
+                    parameters.add(Integer.parseInt(val));
+                } else parameters.add(val);
+
+                query.append(" AND ").append(key).append(" ").append(operator).append(" ?");
+            }
         }
 
-        if (filters.containsKey("status_id")) {
-            query.append(" AND status_id = ?");
-            parameters.add(Integer.valueOf(filters.get("status_id").getFirst()));
-        }
-
-        if (filters.containsKey("bank")) {
-            query.append(" AND bank = ?");
-            parameters.add(filters.get("bank").getFirst());
-        }
-
-        if (filters.containsKey("amount_gt")) {
-            query.append(" AND amount >= ?");
-            parameters.add(Integer.valueOf(filters.get("amount_gt").getFirst()));
-        }
-
-        if (filters.containsKey("amount_lw")) {
-            query.append(" AND amount <= ?");
-            parameters.add(Integer.valueOf(filters.get("amount_lw").getFirst()));
-        }
+//        if (filters.containsKey("amount")) {
+//            query.append(" AND amount = ?");
+//            parameters.add(Integer.valueOf(filters.get("amount").getFirst()));
+//        }
 
         try (PreparedStatement stmt = DatabaseConnection.getConnection().prepareStatement(query.toString())) {
             for (int i = 0; i < parameters.size(); i++) {
@@ -56,97 +69,34 @@ public class TransactionFilter {
         }
     }
 
-//    public void getTransactionsByTime(List<Transaction> transactions) {
-//        Map<String, Long> debitTransactions = new LinkedHashMap<>();
-//        Map<String, Long> creditTransactions = new LinkedHashMap<>();
-//        List<Integer> periodTransactions = new ArrayList<>();
-////        List<Integer> weeklyTransactions = new ArrayList<>();
-////        List<Integer> monthlyTransactions = new ArrayList<>();
-////        List<Integer> quartleryTransactions = new ArrayList<>();
-////        List<Integer> yearlyTransactions = new ArrayList<>();
-//        HashMap<LocalDateTime, Integer> transactionDates = new HashMap<>();
-//        LocalDateTime first = null;
-//        LocalDateTime last = null;
-//        LocalDateTime current = null;
-////        int currentWeekTransactions = 0;
-////        int currentMonthTransactions = 0;
-////        int currentQuarterTransactions = 0;
-////        int currentYearTransactions = 0;
-////        int currentDebitTransactions = 0;
-////        int currentCreditTransactions = 0;
-//        boolean isMonday = false;
-//        Month lastMonth = null;
-//        int lastYear = 0;
-//        for (Transaction transaction : transactions) {
-//            transactionDates.put(transaction.getTransactionDate(), transaction.getTypeID());
-//        }
-//
-//        Collections.sort(transactionDates);
-//        first = transactionDates.getFirst();
-//        current = first;
-//        last = transactionDates.getLast();
-//
-//        //запускаем луп до последнего дня+1 (чтобы последняя дата записалась в массив)
-//        while (current.isBefore(last.plusDays(1))) {
-//            if (transactionDates.containsKey(current)) {
-//
-//            }
-//        }
-//            /*
-//        while (current.isBefore(last.plusDays(1))) {
-//            if (lastYear == 0L) lastYear = current.getYear();
-//            else if (current.getYear() != lastYear) {
-//                lastYear = current.getYear();
-//                yearlyTransactions.add(currentYearTransactions);
-//                currentYearTransactions = 0;
-//            }
-//
-//            if ((current.getMonth() == Month.APRIL
-//                    || current.getMonth() == Month.JULY
-//                    || current.getMonth() == Month.OCTOBER) && current.getDayOfMonth() == 1) {
-//                if (current.getMonth() != lastMonth) {
-//                    quartleryTransactions.add(currentQuarterTransactions);
-//                    currentQuarterTransactions = 0;
-//                }
-//            }
-//
-//            if (lastMonth == null) lastMonth = current.getMonth();
-//            else if (current.getMonth() != lastMonth) {
-//                lastMonth = current.getMonth();
-//                monthlyTransactions.add(currentMonthTransactions);
-//                debitTransactions.put(lastMonth.getDisplayName(3, Locale.ENGLISH));
-//                creditTransactions.put(lastMonth.getDisplayName(3, Locale.ENGLISH));
-//                currentMonthTransactions = 0;
-//                currentDebitTransactions = 0;
-//                currentCreditTransactions = 0;
-//            }
-//            if (current.getDayOfWeek() == DayOfWeek.MONDAY && !current.isEqual(first)) {
-//                if (!isMonday) {
-//                    isMonday = true;
-//                    weeklyTransactions.add(currentWeekTransactions);
-//                    currentWeekTransactions = 0;
-//                }
-//            } else if (isMonday) {
-//                isMonday = false;
-//            }
-//
-//            if (transactionDates.contains(current)) {
-//                currentWeekTransactions++;
-//                currentMonthTransactions++;
-//                currentQuarterTransactions++;
-//                currentYearTransactions++;
-//                if
-//            }
-//            current = current.plusDays(1);
-//            if (current.isAfter(last)) {
-//                weeklyTransactions.add(currentWeekTransactions);
-//                monthlyTransactions.add(currentMonthTransactions);
-//                quartleryTransactions.add(currentQuarterTransactions);
-//                yearlyTransactions.add(currentYearTransactions);
-//            }
-//        }
-//        */
-//    }
+    public void getTransactionsByTime(List<Transaction> transactions) {
+        Map<LocalDate, Integer> weeklyTransactions = new LinkedHashMap<>();
+        int currentWeeklyTransactions = 0;
+        LocalDate startingDate = LocalDate.of(1970, 1, 1);
+        int lastWeek = 0;
+        int totalWeeks = 0;
+        transactions.sort(Comparator.comparing(Transaction::getTransactionDate));
+        for (Transaction transaction : transactions) {
+            LocalDate transactionDate = LocalDate.from(transaction.getTransactionDate());
+            int currentWeek = transactionDate.get(WeekFields.ISO.weekOfWeekBasedYear());
+            currentWeeklyTransactions++;
+            System.out.println("Current week: " + currentWeek);
+            if (lastWeek == currentWeek) {
+                currentWeeklyTransactions++;
+            }
+            else {
+                int weekDifference = currentWeek - lastWeek;
+                for (int i = 1; i <= weekDifference; i++) {
+                    weeklyTransactions.put(startingDate.plusWeeks(totalWeeks + i), 0);
+                }
+                weeklyTransactions.put(startingDate.plusWeeks(currentWeek), currentWeeklyTransactions);
+                currentWeeklyTransactions = 0;
+                totalWeeks += weekDifference;
+                lastWeek = currentWeek;
+            }
+        }
+        System.out.println("Total weekly transactions: " + weeklyTransactions);
+    }
 
     private Transaction mapResultSetToTransaction(ResultSet resultSet) throws SQLException {
         Transaction transaction = new Transaction();
@@ -154,17 +104,17 @@ public class TransactionFilter {
 
         transaction.setUserID(resultSet.getLong("user_id"));  // user_id
 
-        transaction.setLegalTypeID(resultSet.getInt("legal_type_id"));  // person_type_id (assuming this is legalTypeID)
+        transaction.setLegalType(DataLoader.getLegalTypeByID(resultSet.getInt("legal_type_id")));  // person_type_id (assuming this is legalTypeID)
 
         transaction.setTransactionDate(resultSet.getTimestamp("transaction_date").toLocalDateTime());  // transaction_date
 
-        transaction.setTypeID(resultSet.getInt("type_id"));  // type_id
+        transaction.setType(DataLoader.getTransactionTypeByID(resultSet.getInt("type_id")));  // type_id
 
         transaction.setAmount(resultSet.getInt("amount"));  // amount (assuming it's stored as an integer)
 
-        transaction.setStatusID(resultSet.getInt("status_id"));  // status_id
+        transaction.setStatus(DataLoader.getTransactionStatusByID(resultSet.getInt("status_id")));  // status_id
 
-        transaction.setBank(resultSet.getString("bank"));  // bank (assuming sender_bank_id is the bank column)
+        transaction.setBank(DataLoader.getBankByID(resultSet.getInt("bank_id")));  // bank (assuming sender_bank_id is the bank column)
 
         transaction.setAccountNumber(resultSet.getString("account_number"));  // account_number
 
@@ -176,7 +126,7 @@ public class TransactionFilter {
 
         transaction.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());  // created_at
 
-        transaction.setCategoryID(resultSet.getInt("category_id"));  // category_id
+        transaction.setCategory(DataLoader.getCategoryByID(resultSet.getInt("category_id")));  // category_id
 
         transaction.setComment(resultSet.getString("comment"));  // comment
 

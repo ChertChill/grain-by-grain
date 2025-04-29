@@ -63,7 +63,7 @@ public class RestAPI {
             Map<String, List<String>> queryParams = ctx.queryParamMap();
             List<Transaction> selectedTransactions = transactionFilter.getUserTransactions(currentUser, queryParams);
             response.put("transactions", selectedTransactions);
-//            transactionFilter.getTransactionsByTime(selectedTransactions);
+            transactionFilter.getTransactionsByTime(selectedTransactions);
 //            //response.put("dashboard_1", )
             ctx.status(201).json(response);
         } catch (JwtException | SQLException e) {

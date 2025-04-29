@@ -1,6 +1,6 @@
 package transactions;
 
-import database.DatabaseConnection;
+import database.*;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -8,32 +8,33 @@ import java.time.LocalDateTime;
 
 public class Transaction {
     private Long transactionID;
-    private int typeID;
+    private TransactionType type;
     private int amount;
     private String comment;
-    private int statusID;
+    private TransactionStatus status;
     private LocalDateTime transactionDate;
     private LocalDateTime createdAt;
     private Long userID;
     private String accountNumber;
     private String recipientNumber;
-    private String bank;
+    private Bank bank;
     private Long recipientTIN;
     private String recipientPhone;
-    private int categoryID;
-    private int legalTypeID;
+    private Category category;
+    private LegalType legalType;
 
 
     // Полный конструктор
-    public Transaction(Long transactionID, int typeID, int amount, String comment, int statusID,
+    public Transaction(Long transactionID, TransactionType type, int amount, String comment,
+                       TransactionStatus status,
                        LocalDateTime transactionDate, LocalDateTime createdAt, Long userID,
-                       String accountNumber, String recipientNumber, String bank, Long recipientTIN,
-                       String recipientPhone, int categoryID, int legalTypeID) {
+                       String accountNumber, String recipientNumber, Bank bank, Long recipientTIN,
+                       String recipientPhone, Category category, LegalType legalType) {
         this.transactionID = transactionID;
-        this.typeID = typeID;
+        this.type = type;
         this.amount = amount;
         this.comment = comment;
-        this.statusID = statusID;
+        this.status = status;
         this.transactionDate = transactionDate;
         this.createdAt = createdAt;
         this.userID = userID;
@@ -42,8 +43,8 @@ public class Transaction {
         this.bank = bank;
         this.recipientTIN = recipientTIN;
         this.recipientPhone = recipientPhone;
-        this.categoryID = categoryID;
-        this.legalTypeID = legalTypeID;
+        this.category = category;
+        this.legalType = legalType;
     }
 
     public Transaction() {
@@ -58,12 +59,12 @@ public class Transaction {
         this.transactionID = transactionID;
     }
 
-    public int getTypeID() {
-        return typeID;
+    public TransactionType getType() {
+        return type;
     }
 
-    public void setTypeID(int typeID) {
-        this.typeID = typeID;
+    public void setType(TransactionType typeID) {
+        this.type = typeID;
     }
 
     public int getAmount() {
@@ -82,12 +83,12 @@ public class Transaction {
         this.comment = comment;
     }
 
-    public int getStatusID() {
-        return statusID;
+    public TransactionStatus getStatus() {
+        return status;
     }
 
-    public void setStatusID(int statusID) {
-        this.statusID = statusID;
+    public void setStatus(TransactionStatus status) {
+        this.status = status;
     }
 
     public LocalDateTime getTransactionDate() {
@@ -130,12 +131,12 @@ public class Transaction {
         this.recipientNumber = recipientNumber;
     }
 
-    public String getBank() {
+    public Bank getBank() {
         return bank;
     }
 
-    public void setBank(String bank) {
-        this.bank = bank;
+    public void setBank(Bank bankID) {
+        this.bank = bankID;
     }
 
     public Long getRecipientTIN() {
@@ -154,20 +155,20 @@ public class Transaction {
         this.recipientPhone = recipientPhone;
     }
 
-    public int getCategoryID() {
-        return categoryID;
+    public Category getCategory() {
+        return category;
     }
 
-    public void setCategoryID(int categoryID) {
-        this.categoryID = categoryID;
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
-    public int getLegalTypeID() {
-        return legalTypeID;
+    public LegalType getLegalType() {
+        return legalType;
     }
 
-    public void setLegalTypeID(int legalTypeID) {
-        this.legalTypeID = legalTypeID;
+    public void setLegalType(LegalType legalType) {
+        this.legalType = legalType;
     }
 
 
@@ -183,7 +184,7 @@ public class Transaction {
                 user_id,
                 account_number,
                 recipient_number,
-                bank,
+                bank_id,
                 recipient_tin,
                 recipient_phone,
                 category_id,
@@ -195,20 +196,20 @@ public class Transaction {
 
         try (PreparedStatement ps = DatabaseConnection.getConnection().prepareStatement(sql)) {
             int idx = 1;
-            ps.setInt    (idx++, this.getTypeID());             // type_id
+            ps.setInt    (idx++, this.getType().getTypeID());             // type_id
             ps.setInt    (idx++, this.getAmount());             // amount
             ps.setString (idx++, this.getComment());            // comment
-            ps.setInt    (idx++, this.getStatusID());           // status_id
+            ps.setInt    (idx++, this.getStatus().getStatusID());           // status_id
             ps.setObject (idx++, this.getTransactionDate());    // transaction_date
             ps.setObject (idx++, this.getCreatedAt());          // created_at
             ps.setLong   (idx++, this.getUserID());             // user_id
             ps.setString (idx++, this.getAccountNumber());      // account_number
             ps.setString (idx++, this.getRecipientNumber());    // recipient_number
-            ps.setString (idx++, this.getBank());               // bank
+            ps.setInt (idx++, this.getBank().getBankID());               // bank
             ps.setLong    (idx++, this.getRecipientTIN());       // recipient_tin
             ps.setString (idx++, this.getRecipientPhone());              // phone
-            ps.setInt    (idx++, this.getCategoryID());         // category_id
-            ps.setInt    (idx++, this.getLegalTypeID());        // legal_type_id
+            ps.setInt    (idx++, this.getCategory().getCategoryID());         // category_id
+            ps.setInt    (idx++, this.getLegalType().getLegalTypeID());        // legal_type_id
 
             ps.executeUpdate();
         }

@@ -1,5 +1,6 @@
 package api;
 
+import database.DataLoader;
 import database.DatabaseConnection;
 import transactions.Transaction;
 
@@ -16,8 +17,9 @@ public class Main {
         System.out.println("API сервер запущен на порту 7070");
         try {
             DatabaseConnection.start();
+            DataLoader.loadEverything();
         } catch (SQLException e) {
-            System.out.println("Unable to connect to database.");
+            System.out.println("Database Connection Error.");
             e.printStackTrace();
         }
 
