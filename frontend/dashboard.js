@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', initDashboard);
 
 // Store chart instances
 let charts = {};
+let currentPeriod = 'monthly'; // Default period
 
 // Main initialization function
 function initDashboard() {
@@ -15,6 +16,10 @@ function initDashboard() {
         // Generate mock data
         const data = generateMockData();
         
+        // Set monthly period as active
+        currentPeriod = 'monthly';
+        document.querySelector(`.period-button[data-period="monthly"]`).classList.add('active');
+        
         // Initialize all charts
         charts.transactionsByPeriod = createTransactionsByPeriodChart(data);
         charts.debitTransactions = createDebitTransactionsChart(data);
@@ -25,9 +30,93 @@ function initDashboard() {
         charts.expenseCategories = createExpenseCategoriesChart(data);
         charts.incomeCategories = createIncomeCategoriesChart(data);
 
+        // Add period selector event listeners
+        setupPeriodSelector(data);
+
         // Add window resize handler
         window.addEventListener('resize', handleResize);
     });
+}
+
+// Setup period selector functionality
+function setupPeriodSelector(data) {
+    const buttons = document.querySelectorAll('.period-button');
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Update active button
+            buttons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            // Update current period
+            currentPeriod = button.dataset.period;
+            
+            // Update charts
+            updateChartsForPeriod(data);
+        });
+    });
+}
+
+// Update charts based on selected period
+function updateChartsForPeriod(data) {
+    // Update transactions by period chart
+    updateChartData(charts.transactionsByPeriod, data.transactionsByPeriod[currentPeriod]);
+
+    // Update debit transactions chart
+    updateChartData(charts.debitTransactions, data.transactionsByType.debit[currentPeriod]);
+
+    // Update credit transactions chart
+    updateChartData(charts.creditTransactions, data.transactionsByType.credit[currentPeriod]);
+
+    // Update income vs expense chart
+    updateIncomeExpenseChart(charts.incomeExpenseComparison, data.incomeVsExpense[currentPeriod]);
+}
+
+// Helper function to update chart data
+function updateChartData(chart, newData) {
+    if (!newData || !newData.labels || !newData.values) {
+        console.error('Invalid data format for chart update:', newData);
+        return;
+    }
+    
+    chart.data.labels = newData.labels;
+    chart.data.datasets[0].data = newData.values;
+    
+    // Update scales if needed
+    if (chart.options.scales.x) {
+        chart.options.scales.x.maxTicksLimit = Math.min(6, newData.labels.length);
+    }
+    
+    chart.update();
+}
+
+// Helper function to update income vs expense chart
+function updateIncomeExpenseChart(chart, newData) {
+    if (!newData || !newData.labels || !newData.income || !newData.expense) {
+        console.error('Invalid data format for income/expense chart update:', newData);
+        return;
+    }
+    
+    chart.data.labels = newData.labels;
+    chart.data.datasets[0].data = newData.income;
+    chart.data.datasets[1].data = newData.expense;
+    
+    // Update scales if needed
+    if (chart.options.scales.x) {
+        chart.options.scales.x.maxTicksLimit = Math.min(6, newData.labels.length);
+    }
+    
+    chart.update();
+}
+
+// Helper function to get period label
+function getPeriodLabel(period) {
+    const labels = {
+        weekly: 'Еженедельно',
+        monthly: 'Ежемесячно',
+        quarterly: 'Ежеквартально',
+        yearly: 'Ежегодно'
+    };
+    return labels[period];
 }
 
 // Handle window resize
@@ -51,24 +140,82 @@ function loadScript(url, callback) {
 function generateMockData() {
     return {
         transactionsByPeriod: {
-            weekly: [120, 150, 180, 190, 210, 250, 230, 260, 240, 220, 200, 180],
-            monthly: [800, 950, 1100, 1050, 1200, 1300, 1250, 1400, 1350, 1300, 1200, 1100],
-            quarterly: [2800, 3200, 3600, 3400],
-            yearly: [12000, 13500, 14800, 16000, 15500]
+            weekly: {
+                labels: ['Неделя 1', 'Неделя 2', 'Неделя 3', 'Неделя 4'],
+                values: [120, 150, 180, 190]
+            },
+            monthly: {
+                labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+                values: [800, 950, 1100, 1050, 1200, 1300, 1250, 1400, 1350, 1300, 1200, 1100]
+            },
+            quarterly: {
+                labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                values: [2800, 3200, 3600, 3400]
+            },
+            yearly: {
+                labels: ['2020', '2021', '2022', '2023', '2024'],
+                values: [12000, 13500, 14800, 16000, 15500]
+            }
         },
         transactionsByType: {
             debit: {
-                labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
-                values: [500, 650, 600, 700, 750, 800, 850, 900, 850, 800, 750, 700]
+                weekly: {
+                    labels: ['Неделя 1', 'Неделя 2', 'Неделя 3', 'Неделя 4'],
+                    values: [150, 180, 160, 190]
+                },
+                monthly: {
+                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+                    values: [500, 650, 600, 700, 750, 800, 850, 900, 850, 800, 750, 700]
+                },
+                quarterly: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                    values: [1800, 2200, 2400, 2100]
+                },
+                yearly: {
+                    labels: ['2020', '2021', '2022', '2023', '2024'],
+                    values: [8500, 9200, 9800, 10500, 11000]
+                }
             },
             credit: {
-                labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
-                values: [700, 800, 750, 850, 900, 950, 1000, 1050, 1000, 950, 900, 850]
+                weekly: {
+                    labels: ['Неделя 1', 'Неделя 2', 'Неделя 3', 'Неделя 4'],
+                    values: [200, 220, 210, 230]
+                },
+                monthly: {
+                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+                    values: [700, 800, 750, 850, 900, 950, 1000, 1050, 1000, 950, 900, 850]
+                },
+                quarterly: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                    values: [2500, 2800, 3000, 2700]
+                },
+                yearly: {
+                    labels: ['2020', '2021', '2022', '2023', '2024'],
+                    values: [10500, 11500, 12500, 13500, 14000]
+                }
             }
         },
         incomeVsExpense: {
-            income: [700, 800, 750, 850, 900, 950, 1000, 1050, 1000, 950, 900, 850],
-            expense: [500, 650, 600, 700, 750, 800, 850, 900, 850, 800, 750, 700]
+            weekly: {
+                labels: ['Неделя 1', 'Неделя 2', 'Неделя 3', 'Неделя 4'],
+                income: [250, 280, 270, 290],
+                expense: [180, 200, 190, 210]
+            },
+            monthly: {
+                labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+                income: [700, 800, 750, 850, 900, 950, 1000, 1050, 1000, 950, 900, 850],
+                expense: [500, 650, 600, 700, 750, 800, 850, 900, 850, 800, 750, 700]
+            },
+            quarterly: {
+                labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                income: [2500, 2800, 3000, 2700],
+                expense: [1800, 2200, 2400, 2100]
+            },
+            yearly: {
+                labels: ['2020', '2021', '2022', '2023', '2024'],
+                income: [10500, 11500, 12500, 13500, 14000],
+                expense: [8500, 9200, 9800, 10500, 11000]
+            }
         },
         transactionStatus: {
             completed: 8500,
@@ -118,60 +265,23 @@ function createTransactionsByPeriodChart(data) {
     const ctx = document.getElementById('transactions-by-period-chart').getContext('2d');
     
     const chart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
-            labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+            labels: data.transactionsByPeriod.monthly.labels,
             datasets: [{
-                label: 'Еженедельно',
-                data: data.transactionsByPeriod.weekly,
+                label: 'Количество транзакций',
+                data: data.transactionsByPeriod.monthly.values,
+                backgroundColor: 'rgba(75, 192, 192, 0.7)',
                 borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderWidth: 2,
-                hidden: true
-            }, {
-                label: 'Ежемесячно',
-                data: data.transactionsByPeriod.monthly,
-                borderColor: 'rgba(54, 162, 235, 1)',
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderWidth: 2
-            }, {
-                label: 'Ежеквартально',
-                data: [null, null, data.transactionsByPeriod.quarterly[0], null, null, 
-                       data.transactionsByPeriod.quarterly[1], null, null, 
-                       data.transactionsByPeriod.quarterly[2], null, null, 
-                       data.transactionsByPeriod.quarterly[3]],
-                borderColor: 'rgba(153, 102, 255, 1)',
-                backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                borderWidth: 2,
-                hidden: true
-            }, {
-                label: 'Ежегодно',
-                data: [data.transactionsByPeriod.yearly[0], null, null, null, 
-                       data.transactionsByPeriod.yearly[1], null, null, null, 
-                       data.transactionsByPeriod.yearly[2], null, null, null],
-                borderColor: 'rgba(255, 159, 64, 1)',
-                backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                borderWidth: 2,
-                hidden: true
+                borderWidth: 1
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                title: {
-                    display: true,
-                    text: 'Динамика по количеству транзакций',
-                    font: {
-                        size: 16
-                    }
-                },
                 legend: {
-                    position: 'top',
-                    labels: {
-                        boxWidth: 12,
-                        padding: 10
-                    }
+                    display: false
                 }
             },
             scales: {
@@ -202,18 +312,6 @@ function createTransactionsByPeriodChart(data) {
         }
     });
 
-    // Add period selector
-    const periodSelector = document.getElementById('period-selector');
-    if (periodSelector) {
-        periodSelector.addEventListener('change', function() {
-            const period = this.value;
-            chart.data.datasets.forEach((dataset, index) => {
-                dataset.hidden = period !== index.toString();
-            });
-            chart.update();
-        });
-    }
-
     return chart;
 }
 
@@ -224,10 +322,10 @@ function createDebitTransactionsChart(data) {
     const chart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: data.transactionsByType.debit.labels,
+            labels: data.transactionsByType.debit.monthly.labels,
             datasets: [{
                 label: 'Дебетовые транзакции',
-                data: data.transactionsByType.debit.values,
+                data: data.transactionsByType.debit.monthly.values,
                 backgroundColor: 'rgba(255, 99, 132, 0.7)',
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 1
@@ -237,15 +335,16 @@ function createDebitTransactionsChart(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                title: {
-                    display: true,
-                    text: 'Динамика по дебетовым транзакциям',
-                    font: {
-                        size: 16
-                    }
-                },
                 legend: {
                     display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Дебетовые транзакции',
+                    font: {
+                        size: 16
+                    },
+                    padding: 20
                 }
             },
             scales: {
@@ -264,7 +363,7 @@ function createDebitTransactionsChart(data) {
                 x: {
                     title: {
                         display: true,
-                        text: 'Месяц'
+                        text: 'Период'
                     },
                     ticks: {
                         maxRotation: 45,
@@ -286,10 +385,10 @@ function createCreditTransactionsChart(data) {
     const chart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: data.transactionsByType.credit.labels,
+            labels: data.transactionsByType.credit.monthly.labels,
             datasets: [{
                 label: 'Кредитовые транзакции',
-                data: data.transactionsByType.credit.values,
+                data: data.transactionsByType.credit.monthly.values,
                 backgroundColor: 'rgba(54, 162, 235, 0.7)',
                 borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1
@@ -299,15 +398,16 @@ function createCreditTransactionsChart(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                title: {
-                    display: true,
-                    text: 'Динамика по кредитовым транзакциям',
-                    font: {
-                        size: 16
-                    }
-                },
                 legend: {
                     display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Кредитовые транзакции',
+                    font: {
+                        size: 16
+                    },
+                    padding: 20
                 }
             },
             scales: {
@@ -326,7 +426,7 @@ function createCreditTransactionsChart(data) {
                 x: {
                     title: {
                         display: true,
-                        text: 'Месяц'
+                        text: 'Период'
                     },
                     ticks: {
                         maxRotation: 45,
@@ -348,16 +448,16 @@ function createIncomeExpenseComparisonChart(data) {
     const chart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+            labels: data.incomeVsExpense.monthly.labels,
             datasets: [{
                 label: 'Поступления',
-                data: data.incomeVsExpense.income,
+                data: data.incomeVsExpense.monthly.income,
                 backgroundColor: 'rgba(75, 192, 192, 0.7)',
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1
             }, {
                 label: 'Расходы',
-                data: data.incomeVsExpense.expense,
+                data: data.incomeVsExpense.monthly.expense,
                 backgroundColor: 'rgba(255, 99, 132, 0.7)',
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 1
@@ -367,13 +467,6 @@ function createIncomeExpenseComparisonChart(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                title: {
-                    display: true,
-                    text: 'Сравнение поступлений и расходов',
-                    font: {
-                        size: 16
-                    }
-                },
                 legend: {
                     position: 'top',
                     labels: {
@@ -398,7 +491,7 @@ function createIncomeExpenseComparisonChart(data) {
                 x: {
                     title: {
                         display: true,
-                        text: 'Месяц'
+                        text: 'Период'
                     },
                     ticks: {
                         maxRotation: 45,
@@ -438,13 +531,6 @@ function createTransactionStatusChart(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                title: {
-                    display: true,
-                    text: 'Статус транзакций',
-                    font: {
-                        size: 16
-                    }
-                },
                 legend: {
                     position: 'right',
                     labels: {
@@ -485,13 +571,6 @@ function createBankStatisticsChart(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                title: {
-                    display: true,
-                    text: 'Статистика по банкам',
-                    font: {
-                        size: 16
-                    }
-                },
                 legend: {
                     position: 'top',
                     labels: {
@@ -562,13 +641,6 @@ function createExpenseCategoriesChart(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                title: {
-                    display: true,
-                    text: 'Категории расходов',
-                    font: {
-                        size: 16
-                    }
-                },
                 legend: {
                     position: 'right',
                     labels: {
@@ -614,13 +686,6 @@ function createIncomeCategoriesChart(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                title: {
-                    display: true,
-                    text: 'Категории поступлений',
-                    font: {
-                        size: 16
-                    }
-                },
                 legend: {
                     position: 'right',
                     labels: {

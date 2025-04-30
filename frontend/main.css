@@ -16,7 +16,7 @@ body {
     width: 100%;
     padding: 0 32px;
     box-sizing: border-box;
-    margin: 120px auto 0;
+    margin: 120px auto 60px;
 }
 
 
@@ -217,7 +217,7 @@ body {
 
 .error-message {
     min-height: 18px;
-    margin: 12px 0;
+    margin: 0 0 12px;
 
     font-size: 14px;
     line-height: 18px;
@@ -346,67 +346,321 @@ body {
 /* Транзакции */
 
 #transactions {
-    display: flex;
-    flex-wrap: nowrap;
-    flex-direction: column;
-    gap: 12px;
-
     margin-top: 40px;
 }
 
     #transaction-new {
         display: flex;
+        align-items: center;
         justify-content: center;
         gap: 0;
 
         border: 3px dashed #8BFF92;
-        background: rgba(198, 255, 202, 0.5); /* #C6FFCA; */
+        background: rgba(198, 255, 202, 0.5);
+
+        /* Отключаем тень и анимацию */
+        box-shadow: none;
+        transform: none;
+        transition: none;
     }
 
-    .transaction-item {
-        display: grid;
-        align-items: center;
-        grid-template-columns: 1fr min-content;
+    #transaction-new:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    #transactions-list {
+        display: flex;
+        flex-wrap: nowrap;
+        flex-direction: column;
         gap: 16px;
-
-        width: 100%;
-        min-height: 80px;
-        padding: 20px;
-        box-sizing: border-box;
-        border-radius: 16px;
-        background: #F5C8FF;
+    
+        margin-top: 20px;
     }
 
-        .ti-buttons {
-            display: flex;
-            flex-wrap: nowrap;
-            align-items: center;
-            flex-direction: row;
-            gap: 12px;
+        .transaction-item {
+            display: grid;
+            align-items: start;
+            grid-template-columns: 1fr min-content;
+            gap: 16px;
+
+            width: 100%;
+            min-height: 80px;
+            padding: 20px;
+            box-sizing: border-box;
+            border-radius: 16px;
+            background: #F9E1FF;
+
+            /* Добавляем тень и анимацию */
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
 
-            .ti__button {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                transition: all 0.2s ease-in-out;
+        .transaction-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+            .ti-buttons {
+                display: flex;
+                flex-wrap: nowrap;
+                align-items: center;
+                flex-direction: row;
+                gap: 12px;
             }
 
-            .ti__button:hover {
-                box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.2);
-            }
+                .ti__button {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    transition: all 0.2s ease-in-out;
+                }
 
-            #ti-edit {
-                background: #FFF url('./icons/edit-square.svg') center / 24px no-repeat;
-            }
+                .ti__button:hover {
+                    box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.2);
+                }
 
-            #ti-apply {
-                background: #C6FFCA url('./icons/check.svg') center / 24px no-repeat;
-            }
+                #ti-edit {
+                    background: #FFF url('./icons/edit-square.svg') center / 24px no-repeat;
+                }
 
-            #ti-delete {
-                background: #FB5884 url('./icons/delete.svg') center / 24px no-repeat;
-            }
+                #ti-apply {
+                    background: #C6FFCA url('./icons/check.svg') center / 24px no-repeat;
+                }
+
+                #ti-delete {
+                    background: #FB5884 url('./icons/delete.svg') center / 24px no-repeat;
+                }
+
+.ti-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.ti-main-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ti-amount {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 120%;
+}
+
+.ti-amount-sign {
+    color: #666666;
+    font-size: 18px;
+}
+
+.ti-type, .ti-status {
+    width: fit-content;
+}
+
+.ti-type {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 120%;
+}
+
+.ti-type.income {
+    background: #C6FFCA;
+    color: #2D882D;
+}
+
+.ti-type.expense {
+    background: #FFD6D6;
+    color: #882D2D;
+}
+
+.ti-status {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 120%;
+}
+
+.ti-status.new {
+    background: #E2E2E2;
+    color: #666666;
+}
+
+.ti-status.confirmed {
+    background: #FFF3C6;
+    color: #8B7B3B;
+}
+
+.ti-status.processing {
+    background: #C6E4FF;
+    color: #3B628B;
+}
+
+.ti-status.cancelled {
+    background: #FFD6D6;
+    color: #882D2D;
+}
+
+.ti-status.completed {
+    background: #C6FFCA;
+    color: #2D882D;
+}
+
+.ti-status.deleted {
+    background: #E2E2E2;
+    color: #666666;
+}
+
+.ti-status.refund {
+    background: #F9E1FF;
+    color: #8B3B8B;
+}
+
+.ti-secondary-info {
+    display: grid;
+    grid-template-columns: 1fr 4fr 1fr;
+    gap: 16px;
+}
+
+.ti-amount-block {
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    min-width: 180px;
+}
+
+.ti-details-block {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 20px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    flex-grow: 1;
+}
+
+.ti-date-group {
+    min-width: 160px;
+}
+
+.ti-info-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.ti-info-label {
+    font-size: 12px;
+    color: #666666;
+    font-weight: 500;
+    line-height: 120%;
+    white-space: nowrap;
+}
+
+.ti-info-value {
+    font-size: 14px;
+    color: #1E1E1E;
+    line-height: 120%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* white-space: nowrap; */
+}
+
+.ti-comment {
+    font-style: italic;
+}
+
+.ti-category {
+    font-weight: 500;
+}
+
+.ti-details {
+    margin-top: 12px;
+}
+
+.ti-details-toggle {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: rgba(87, 123, 255, 0.1);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 120%;
+    color: #577BFF;
+}
+
+.ti-details-toggle:hover {
+    background: rgba(87, 123, 255, 0.2);
+}
+
+.ti-details-toggle::after {
+    content: '';
+    width: 16px;
+    height: 16px;
+    margin-left: 6px;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23577BFF"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat center;
+    transform: rotate(-90deg);
+    transition: transform 0.3s ease;
+}
+
+.ti-details-toggle.active::after {
+    transform: rotate(0);
+}
+
+.ti-details-content {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 0;
+    margin-top: 0;
+    max-height: 0;
+    opacity: 0;
+    visibility: hidden;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    transition: max-height 0.3s ease-in-out, 
+                opacity 0.2s ease-in-out, 
+                visibility 0.2s ease-in-out,
+                padding 0.3s ease-in-out,
+                margin-top 0.3s ease-in-out;
+}
+
+.ti-details-content.active {
+    padding: 12px 16px;
+    margin-top: 12px;
+    max-height: 500px;
+    opacity: 1;
+    visibility: visible;
+}
+
+.ti-detail-item {
+    font-size: 14px;
+}
+
+.ti-detail-label {
+    color: #666666;
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 120%;
+}
+
+.ti-detail-value {
+    color: #1E1E1E;
+    font-weight: 500;
+    line-height: 120%;
+                }
 
 
 

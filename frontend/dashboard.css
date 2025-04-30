@@ -1,8 +1,8 @@
 /* Dashboard Styles */
 
 :root {
-    --primary-color: #2c3e50;
-    --secondary-color: #34495e;
+    --primary-color: #1E1E1E;
+    --secondary-color: #1E1E1E;
     --accent-color: #3498db;
     --success-color: #2ecc71;
     --danger-color: #e74c3c;
@@ -24,43 +24,6 @@
     box-shadow: 0 0 15px var(--shadow-color);
     background-color: var(--light-color);
     overflow: hidden;
-}
-
-/* Dashboard Controls */
-.dashboard-controls {
-    display: flex;
-    justify-content: flex-end;
-    padding: 0;
-    background: none;
-    box-shadow: none;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.dashboard-control-item {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.dashboard-control-item label {
-    font-weight: bold;
-    margin-right: 10px;
-    color: var(--dark-color);
-    font-size: 14px;
-}
-
-/* Period Selector */
-#period-selector {
-    padding: 5px 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background-color: white;
-    color: var(--text-color);
-    font-size: 14px;
-    cursor: pointer;
-    min-width: 120px;
 }
 
 /* Dashboard Grid */
@@ -88,17 +51,14 @@
 }
 
 .dashboard-card-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
+    line-height: 120%;
     color: var(--primary-color);
-    margin-bottom: 10px;
+
+    margin-bottom: 20px;
     padding-bottom: 5px;
     border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
 }
 
 .dashboard-card-wrapper {
@@ -161,20 +121,26 @@
 }
 
 .summary-label {
-    font-size: 14px;
+    font-size: 16px;
+    line-height: 120%;
     color: var(--secondary-color);
-    margin-bottom: 5px;
+
+    margin-bottom: 10px;
 }
 
 .summary-value {
     font-size: 24px;
-    font-weight: bold;
+    font-weight: 500;
+    line-height: 120%;
     color: var(--primary-color);
 }
 
 .summary-trend {
-    font-size: 12px;
-    margin-top: 5px;
+    font-size: 14px;
+    font-style: italic;
+    line-height: 120%;
+
+    margin-top: 8px;
 }
 
 .trend-up {
@@ -191,4 +157,30 @@
     height: 100%;
     position: relative;
     overflow: hidden;
+}
+
+/* Period Selector */
+.period-selector {
+    display: flex;
+    gap: 10px;
+}
+
+.period-button {
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: white;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.period-button:hover {
+    background-color: var(--light-color);
+}
+
+.period-button.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
 }
