@@ -1,19 +1,16 @@
 package transactions;
 
 import authorization.User;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import database.DataLoader;
 import database.DatabaseConnection;
-import io.javalin.http.util.JsonEscapeUtil;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.time.temporal.ChronoUnit;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 import java.util.*;
 
@@ -69,33 +66,145 @@ public class TransactionFilter {
         }
     }
 
-    public void getTransactionsByTime(List<Transaction> transactions) {
-        Map<LocalDate, Integer> weeklyTransactions = new LinkedHashMap<>();
-        int currentWeeklyTransactions = 0;
-        LocalDate startingDate = LocalDate.of(1970, 1, 1);
-        int lastWeek = 0;
-        int totalWeeks = 0;
+    public LinkedHashMap<String, LinkedHashMap<String, List<List<String>>>> getTransactionsByTime(LocalDate firstDate, List<Transaction> originalTransactions) {
+        List<Transaction> transactions = new ArrayList<>(originalTransactions);
+        // 1) sort chronologically
         transactions.sort(Comparator.comparing(Transaction::getTransactionDate));
-        for (Transaction transaction : transactions) {
-            LocalDate transactionDate = LocalDate.from(transaction.getTransactionDate());
-            int currentWeek = transactionDate.get(WeekFields.ISO.weekOfWeekBasedYear());
-            currentWeeklyTransactions++;
-            System.out.println("Current week: " + currentWeek);
-            if (lastWeek == currentWeek) {
-                currentWeeklyTransactions++;
+
+        // WEEKLY
+        List<String> weeks = new ArrayList<>();
+        List<String> weeklyCounts = new ArrayList<>();
+        // MONTHLY
+        List<String> months = new ArrayList<>();
+        List<String> monthlyCounts = new ArrayList<>();
+        // QUARTERLY
+        List<String> quarters = new ArrayList<>();
+        List<String> quarterlyCounts = new ArrayList<>();
+        // YEARLY
+        List<String> years = new ArrayList<>();
+        List<String> yearlyCounts = new ArrayList<>();
+
+        // WEEKLY: Monday of ISO week
+        LocalDate weekStart = firstDate.with(WeekFields.ISO.dayOfWeek(), 1);
+
+        // MONTHLY: first day of month
+        LocalDate monthStart = firstDate.withDayOfMonth(1);
+
+        // QUARTERLY: round down to quarter start
+        int monthValue = firstDate.getMonthValue();
+        int quarterStartMonth = ((monthValue - 1) / 3) * 3 + 1;  // 1, 4, 7, or 10
+        LocalDate quarterStart = LocalDate.of(firstDate.getYear(), quarterStartMonth, 1);
+
+        // YEARLY: first day of year
+        LocalDate yearStart    = LocalDate.of(firstDate.getYear(), 1, 1);
+
+        int weekCount = 0;
+        int monthCount = 0;
+        int quarterCount = 0;
+        int yearCount = 0;
+
+        for (Transaction tx : transactions) {
+            LocalDate txDate = tx.getTransactionDate().toLocalDate();
+
+            // compute target bucket starts
+            LocalDate txWeekStart = txDate.with(WeekFields.ISO.dayOfWeek(), 1);
+            LocalDate txMonthStart = txDate.withDayOfMonth(1);
+            // round down to quarter start for this tx
+            int txQuarterStartMonth = ((txDate.getMonthValue() - 1) / 3) * 3 + 1;
+            LocalDate txQuarterStart = LocalDate.of(txDate.getYear(), txQuarterStartMonth, 1);
+            LocalDate txYearStart = LocalDate.of(txDate.getYear(), 1, 1);
+
+            // — flush weekly buckets —
+            while (txWeekStart.isAfter(weekStart)) {
+                addTransactionToOutput(weeks, weekStart, weeklyCounts, weekCount, "week");
+                weekStart = weekStart.plusWeeks(1);
+                weekCount = 0;
             }
-            else {
-                int weekDifference = currentWeek - lastWeek;
-                for (int i = 1; i <= weekDifference; i++) {
-                    weeklyTransactions.put(startingDate.plusWeeks(totalWeeks + i), 0);
-                }
-                weeklyTransactions.put(startingDate.plusWeeks(currentWeek), currentWeeklyTransactions);
-                currentWeeklyTransactions = 0;
-                totalWeeks += weekDifference;
-                lastWeek = currentWeek;
+
+            // — flush monthly buckets —
+            while (txMonthStart.isAfter(monthStart)) {
+                addTransactionToOutput(months, monthStart, monthlyCounts, monthCount, "month");
+                monthStart = monthStart.plusMonths(1);
+                monthCount = 0;
+            }
+
+            // — flush quarterly buckets —
+            while (txQuarterStart.isAfter(quarterStart)) {
+                // label this quarter as "YYYY-MM-DD to YYYY-MM-DD"
+                LocalDate qEnd = quarterStart.plusMonths(3).minusDays(1);
+                addTransactionToOutput(quarters, quarterStart, quarterlyCounts, quarterCount, "quarter");
+
+                // advance quarterStart by 3 months
+                quarterStart = quarterStart.plusMonths(3);
+                quarterCount = 0;
+            }
+
+            // — flush yearly buckets —
+            while (txYearStart.isAfter(yearStart)) {
+                addTransactionToOutput(years, yearStart, yearlyCounts, yearCount, "year");
+                yearStart = yearStart.plusYears(1);
+                yearCount = 0;
+            }
+
+            // count into all current buckets
+            weekCount++;
+            monthCount++;
+            quarterCount++;
+            yearCount++;
+        }
+
+        // week
+        addTransactionToOutput(weeks, weekStart, weeklyCounts, weekCount, "week");
+
+        // month
+        addTransactionToOutput(months, monthStart, monthlyCounts, monthCount, "month");
+
+        // quarter
+        addTransactionToOutput(quarters, quarterStart, quarterlyCounts, quarterCount, "quarter");
+
+        // year
+        addTransactionToOutput(years, yearStart, yearlyCounts, yearCount, "year");
+
+
+        LinkedHashMap<String, List<List<String>>> firstDashboard = new LinkedHashMap<>();
+        firstDashboard.put("weekly", Arrays.asList(weeks, weeklyCounts));
+        firstDashboard.put("monthly", Arrays.asList(months, monthlyCounts));
+        firstDashboard.put("quarterly", Arrays.asList(quarters, quarterlyCounts));
+        firstDashboard.put("yearly", Arrays.asList(years, yearlyCounts));
+        LinkedHashMap<String, LinkedHashMap<String, List<List<String>>>> result = new LinkedHashMap<>();
+        result.put("Dashboard 1:", firstDashboard);
+        System.out.println(result);
+        return result;
+    }
+
+    private void addTransactionToOutput(List<String> labels, LocalDate date, List<String> values, int value, String type) {
+        DateTimeFormatter formatter;
+        switch (type) {
+            case "week": {
+                formatter = DateTimeFormatter.ofPattern("MM-dd", new Locale("ru"));
+                labels.add("неделя " + date.format(formatter));
+                values.add(String.valueOf(value));
+                break;
+            }
+            case "month": {
+                formatter = DateTimeFormatter.ofPattern("MMM", new Locale("ru"));
+                labels.add(date.format(formatter));
+                values.add(String.valueOf(value));
+                break;
+            }
+            case "quarter": {
+                int quarter = (date.getMonthValue() - 1) / 3 + 1;
+                labels.add("Q" + quarter + " " + date.getYear());
+                values.add(String.valueOf(value));
+                break;
+            }
+            case "year": {
+                formatter = DateTimeFormatter.ofPattern("yyyy", new Locale("ru"));
+                labels.add(date.format(formatter));
+                values.add(String.valueOf(value));
+                break;
             }
         }
-        System.out.println("Total weekly transactions: " + weeklyTransactions);
     }
 
     private Transaction mapResultSetToTransaction(ResultSet resultSet) throws SQLException {
