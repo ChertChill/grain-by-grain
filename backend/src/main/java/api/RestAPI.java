@@ -12,6 +12,7 @@ import transactions.Transaction;
 import transactions.TransactionFilter;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,8 +64,8 @@ public class RestAPI {
             Map<String, List<String>> queryParams = ctx.queryParamMap();
             List<Transaction> selectedTransactions = transactionFilter.getUserTransactions(currentUser, queryParams);
             response.put("transactions", selectedTransactions);
-            transactionFilter.getTransactionsByTime(selectedTransactions);
-//            //response.put("dashboard_1", )
+            LinkedHashMap<String, LinkedHashMap<String, List<List<String>>>> dashboards = transactionFilter.getTransactionsByTime(LocalDate.of(1970, 1, 1), selectedTransactions);
+            response.put("dashboards", dashboards);
             ctx.status(201).json(response);
         } catch (JwtException | SQLException e) {
             ctx.status(400).json(e.getMessage());
