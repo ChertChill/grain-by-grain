@@ -29,7 +29,7 @@ CREATE TABLE categories (
 CREATE TABLE banks (
     bank_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    bic VARCHAR(9) NOT NULL CHECK (bic ~ '^[0-9]{9}$'),
+    bic VARCHAR(9) UNIQUE NOT NULL CHECK (bic ~ '^[0-9]{9}$'),
     address VARCHAR(255)
 );
 
@@ -42,14 +42,15 @@ CREATE TABLE legal_types (
 CREATE TABLE transactions (
     transaction_id SERIAL PRIMARY KEY,
     type_id INT NOT NULL REFERENCES transaction_types(type_id),
-    bank_id INT NOT NULL REFERENCES banks (bank_id),
+    sender_bank_id INT NOT NULL REFERENCES banks (bank_id),
+    recipient_bank_id INT NOT NULL REFERENCES banks (bank_id),
     amount DECIMAL(12, 2) NOT NULL,
     comment TEXT,
     status_id INT NOT NULL REFERENCES transaction_status(status_id),
     created_at TIMESTAMP NOT NULL,
     user_id BIGINT NOT NULL REFERENCES users(user_id),               
-    account_number VARCHAR(50) NOT NULL,                             
-    recipient_number VARCHAR(50) NOT NULL,                           
+    account_number VARCHAR(50) UNIQUE NOT NULL,                             
+    recipient_number VARCHAR(50) UNIQUE NOT NULL,                           
     legal_type_id INT NOT NULL REFERENCES legal_types(legal_type_id),
     transaction_date DATE NOT NULL,                                             
     recipient_tin BIGINT NOT NULL CHECK (recipient_tin >= 10000000000 AND recipient_tin <= 99999999999), 
