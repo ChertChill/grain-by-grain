@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
@@ -15,9 +16,9 @@ import java.time.temporal.WeekFields;
 import java.util.*;
 
 public class TransactionFilter {
-    private final String greater_identificator = "-gt";
-    private final String less_identificator = "-lw";
-    private final String num_identificator = "-num";
+    public final String greater_identificator = "-gt";
+    public final String less_identificator = "-lw";
+    public final String num_identificator = "-num";
 
     public List<Transaction> getUserTransactions(User user, Map<String, List<String>> filters) throws SQLException {
         StringBuilder query = new StringBuilder("SELECT * FROM transactions WHERE user_id = ?");
@@ -31,28 +32,27 @@ public class TransactionFilter {
                 String val = entry.getValue().getFirst();
 
                 String operator = "=";
+                boolean toInt = false;
 
                 if (key.contains(greater_identificator)) {
                     operator = ">=";
                     key = key.replace(greater_identificator, "");
-                    parameters.add(Integer.parseInt(val));
+                    toInt = true;
                 } else if (key.contains(less_identificator)) {
                     operator = "<=";
                     key = key.replace(less_identificator, "");
-                    parameters.add(Integer.parseInt(val));
+                    toInt = true;
                 } else if (key.contains(num_identificator)) {
                     key = key.replace(num_identificator, "");
-                    parameters.add(Integer.parseInt(val));
-                } else parameters.add(val);
+                }
+
+                if (key.contains("transaction_date") || key.contains("created_at")) parameters.add(LocalDateTime.parse(val));
+                else if (toInt) parameters.add(Integer.parseInt(val));
+                else parameters.add(val);
 
                 query.append(" AND ").append(key).append(" ").append(operator).append(" ?");
             }
         }
-
-//        if (filters.containsKey("amount")) {
-//            query.append(" AND amount = ?");
-//            parameters.add(Integer.valueOf(filters.get("amount").getFirst()));
-//        }
 
         try (PreparedStatement stmt = DatabaseConnection.getConnection().prepareStatement(query.toString())) {
             for (int i = 0; i < parameters.size(); i++) {
@@ -66,7 +66,8 @@ public class TransactionFilter {
         }
     }
 
-    public LinkedHashMap<String, LinkedHashMap<String, List<List<String>>>> getTransactionsByTime(LocalDate firstDate, List<Transaction> originalTransactions) {
+    public LinkedHashMap<String, LinkedHashMap<String, List<List<String>>>> getTransactionsByTime(LocalDateTime startingTimestamp, List<Transaction> originalTransactions) {
+        LocalDate firstDate = startingTimestamp.toLocalDate();
         List<Transaction> transactions = new ArrayList<>(originalTransactions);
         // 1) sort chronologically
         transactions.sort(Comparator.comparing(Transaction::getTransactionDate));
