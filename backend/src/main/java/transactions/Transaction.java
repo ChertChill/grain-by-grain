@@ -17,7 +17,8 @@ public class Transaction {
     private Long userID;
     private String accountNumber;
     private String recipientNumber;
-    private Bank bank;
+    private Bank senderBank;
+    private Bank recipientBank;
     private Long recipientTIN;
     private String recipientPhone;
     private Category category;
@@ -28,7 +29,7 @@ public class Transaction {
     public Transaction(Long transactionID, TransactionType type, int amount, String comment,
                        TransactionStatus status,
                        LocalDateTime transactionDate, LocalDateTime createdAt, Long userID,
-                       String accountNumber, String recipientNumber, Bank bank, Long recipientTIN,
+                       String accountNumber, String recipientNumber, Bank senderBank, Bank recipientBank, Long recipientTIN,
                        String recipientPhone, Category category, LegalType legalType) {
         this.transactionID = transactionID;
         this.type = type;
@@ -40,7 +41,8 @@ public class Transaction {
         this.userID = userID;
         this.accountNumber = accountNumber;
         this.recipientNumber = recipientNumber;
-        this.bank = bank;
+        this.senderBank = senderBank;
+        this.recipientBank = recipientBank;
         this.recipientTIN = recipientTIN;
         this.recipientPhone = recipientPhone;
         this.category = category;
@@ -131,13 +133,17 @@ public class Transaction {
         this.recipientNumber = recipientNumber;
     }
 
-    public Bank getBank() {
-        return bank;
+    public Bank getSenderBank() {
+        return senderBank;
     }
 
-    public void setBank(Bank bankID) {
-        this.bank = bankID;
+    public void setSenderBank(Bank bankID) {
+        this.senderBank = bankID;
     }
+
+    public Bank getRecipientBank() { return recipientBank; }
+
+    public void setRecipientBank(Bank bankID) { this.recipientBank = bankID; }
 
     public Long getRecipientTIN() {
         return recipientTIN;
@@ -184,7 +190,8 @@ public class Transaction {
                 user_id,
                 account_number,
                 recipient_number,
-                bank_id,
+                sender_bank_id,
+                recipient_bank_id,
                 recipient_tin,
                 recipient_phone,
                 category_id,
@@ -205,7 +212,8 @@ public class Transaction {
             ps.setLong   (idx++, this.getUserID());             // user_id
             ps.setString (idx++, this.getAccountNumber());      // account_number
             ps.setString (idx++, this.getRecipientNumber());    // recipient_number
-            ps.setInt (idx++, this.getBank().getBankID());               // bank
+            ps.setInt (idx++, this.getSenderBank().getBankID());               // senderBankID
+            ps.setInt (idx++, this.getRecipientBank().getBankID());
             ps.setLong    (idx++, this.getRecipientTIN());       // recipient_tin
             ps.setString (idx++, this.getRecipientPhone());              // phone
             ps.setInt    (idx++, this.getCategory().getCategoryID());         // category_id

@@ -65,7 +65,7 @@ public class RestAPI {
             Map<String, List<String>> queryParams = ctx.queryParamMap();
             List<Transaction> selectedTransactions = transactionFilter.getUserTransactions(currentUser, queryParams);
             response.put("transactions", selectedTransactions);
-            LinkedHashMap<String, LinkedHashMap<String, List<List<String>>>> dashboards = null;
+            LinkedHashMap<String, Object> dashboards = null;
             if (queryParams.containsKey("transaction_date" + transactionFilter.greater_identificator)) {
                 dashboards = transactionFilter.getTransactionsByTime(
                         LocalDateTime.parse(queryParams.get("transaction_date" + transactionFilter.greater_identificator).getFirst()),
