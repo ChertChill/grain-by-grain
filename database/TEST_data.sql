@@ -1,6 +1,6 @@
 -- Добавление 2 пользователей-бедолаг
 
-INSERT INTO users (user_id, email, password_hash, full_name) VALUES
+INSERT INTO users (email, password_hash, full_name) VALUES
   ('feofan_1991@rambler.ru', '1da9b72a13f75b772699ff1a8f77bea945c3dcadb073bb8b3409b5a28b115cd9', 'Зимин Антонин Анатольевич'),
   ('irina61@yandex.ru', 'bda7c1181d98d0621e12c51241c3e285fb89c1275a05c56b777dc775b594ca35', 'Воробьева Светлана Аркадьевна');
   
