@@ -1,10 +1,10 @@
 -- Добавление 2 пользователей-бедолаг
 
 INSERT INTO users (user_id, email, password_hash, full_name) VALUES
-  (1, 'feofan_1991@rambler.ru', '1da9b72a13f75b772699ff1a8f77bea945c3dcadb073bb8b3409b5a28b115cd9', 'Зимин Антонин Анатольевич'),
-  (2, 'irina61@yandex.ru', 'bda7c1181d98d0621e12c51241c3e285fb89c1275a05c56b777dc775b594ca35', 'Воробьева Светлана Аркадьевна');
+  ('feofan_1991@rambler.ru', '1da9b72a13f75b772699ff1a8f77bea945c3dcadb073bb8b3409b5a28b115cd9', 'Зимин Антонин Анатольевич'),
+  ('irina61@yandex.ru', 'bda7c1181d98d0621e12c51241c3e285fb89c1275a05c56b777dc775b594ca35', 'Воробьева Светлана Аркадьевна');
   
-  -- Генерация тестовых транзакций на 2 пользователя, 1096 шт
+-- Генерация тестовых транзакций на 2 пользователя
 
 INSERT INTO transactions (
     type_id,
@@ -42,7 +42,7 @@ SELECT
 FROM (
     SELECT generate_series(CURRENT_DATE - INTERVAL '1.5 years', CURRENT_DATE, INTERVAL '1 day') AS day
 ) d,
-LATERAL generate_series(1, FLOOR(RANDOM() * 5 + 1)::INT) AS g(n);
+LATERAL generate_series(1, FLOOR(RANDOM() * 3 + 1)::INT) AS g(n);
 
 SELECT *
 FROM transactions t

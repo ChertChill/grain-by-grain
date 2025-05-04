@@ -8,9 +8,15 @@ import authorization.errors.RegistrationInputException;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.jsonwebtoken.JwtException;
+import transactions.DashboardGenerator;
+import transactions.Transaction;
 import transactions.TransactionFilter;
+import transactions.TransactionSummary;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,22 +44,50 @@ public class RestAPI {
         app.post("/api/login", RestAPI::loginRequest);
         app.post("/api/register", RestAPI::registrationRequest);
         app.get("/api/check_user", RestAPI::checkUser);
-        app.get("/api/get_user_transactions", RestAPI::getUserTransactions);
+        app.get("/api/get_transactions", RestAPI::getUserTransactions);
+    }
+
+    private static String checkHeader(Context ctx) {
+        String authHeader = ctx.header("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new JwtException("Missing or invalid Authorization header");
+        }
+        return authHeader.substring(7);
     }
 
     private static void getUserTransactions(Context ctx) {
-        String authHeader = ctx.header("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            ctx.status(401).json("Missing or invalid Authorization header");
-            return;
-        }
-        String token = authHeader.substring(7);
-
+        Map<String, Object> response = new LinkedHashMap<>();
         try {
+            String token = checkHeader(ctx);
             User currentUser = JWTHandler.getUser(token);
             TransactionFilter transactionFilter = new TransactionFilter();
             Map<String, List<String>> queryParams = ctx.queryParamMap();
-            ctx.status(201).json(transactionFilter.getUserTransactions(currentUser, queryParams));
+            List<Transaction> selectedTransactions = transactionFilter.getUserTransactions(currentUser, queryParams);
+            selectedTransactions.sort(Comparator.comparing(Transaction::getTransactionDate));
+            response.put("transactions", selectedTransactions);
+
+            response.put("summary", new TransactionSummary(selectedTransactions).toMap());
+
+            LinkedHashMap<String, Object> dashboards = null;
+            DashboardGenerator dashboardGenerator = new DashboardGenerator();
+            //Это можно красивее сделать
+            if (queryParams.containsKey("transaction_date" + transactionFilter.greater_identificator)) {
+                dashboards = dashboardGenerator.generateDashboards(
+                        LocalDateTime.parse(queryParams.get("transaction_date" + transactionFilter.greater_identificator).getFirst()),
+                        selectedTransactions);
+            } else if (queryParams.containsKey("transaction_date" + transactionFilter.less_identificator)) {
+                dashboards = dashboardGenerator.generateDashboards(selectedTransactions.getFirst().getTransactionDate(),
+                        selectedTransactions);
+            } else if (queryParams.containsKey("transaction_date" + transactionFilter.num_identificator)) {
+                dashboards = dashboardGenerator.generateDashboards(
+                        LocalDateTime.parse(queryParams.get("transaction_date" + transactionFilter.num_identificator).getFirst()),
+                        selectedTransactions);
+            } else {
+                dashboards = dashboardGenerator.generateDashboards(selectedTransactions.getFirst().getTransactionDate(),
+                        selectedTransactions);
+            }
+            response.put("dashboards", dashboards);
+            ctx.status(201).json(response);
         } catch (JwtException | SQLException e) {
             ctx.status(400).json(e.getMessage());
         }
@@ -61,14 +95,9 @@ public class RestAPI {
 
     //выдает всю информацию по авторизованному юзеру (через JWT-токен)
     private static void checkUser(Context ctx) {
-        String authHeader = ctx.header("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            ctx.status(400).json("Missing or invalid Authorization header");
-            return;
-        }
-        String token = authHeader.substring(7);
         Map<String, Object> response = new LinkedHashMap<>();
         try {
+            String token = checkHeader(ctx);
             User currentUser = JWTHandler.getUser(token);
             response.put("valid", true);
             response.put("full_name", currentUser.getFullName());

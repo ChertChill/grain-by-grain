@@ -22,12 +22,12 @@ INSERT INTO legal_types (legal_type_id, name) VALUES
 
 INSERT INTO transaction_status (name, is_final) VALUES
   ('Новая', FALSE),
-  ('Подтверждена', TRUE),
-  ('В процессе', TRUE),
+  ('Подтвержденная', TRUE),
+  ('В обработке', TRUE),
   ('Отменена', TRUE),
-  ('Завершена', TRUE),
-  ('Удалена', TRUE),
-  ('Возврат средств', TRUE);
+  ('Платеж выполнен', TRUE),
+  ('Платеж удален', TRUE),
+  ('Возврат', TRUE);
 
 INSERT INTO banks (name, bic, address) VALUES
 ('ПАО Сбербанк', '044525225', '117997, г. Москва, ул. Вавилова, д. 19'),

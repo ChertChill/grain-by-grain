@@ -4,8 +4,6 @@
     --primary-color: #1E1E1E;
     --secondary-color: #1E1E1E;
     --accent-color: #3498db;
-    --success-color: #2ecc71;
-    --danger-color: #e74c3c;
     --warning-color: #f39c12;
     --light-color: #ecf0f1;
     --dark-color: #2c3e50;
@@ -133,22 +131,6 @@
     font-weight: 500;
     line-height: 120%;
     color: var(--primary-color);
-}
-
-.summary-trend {
-    font-size: 14px;
-    font-style: italic;
-    line-height: 120%;
-
-    margin-top: 8px;
-}
-
-.trend-up {
-    color: var(--success-color);
-}
-
-.trend-down {
-    color: var(--danger-color);
 }
 
 /* Chart Container */

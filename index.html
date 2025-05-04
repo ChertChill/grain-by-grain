@@ -112,7 +112,7 @@
 
             <div id="register-form" class="auth-form">
 
-                <h2>pегистpация аккаунта</h2>
+                <h2>Регистpация аккаунта</h2>
 
                 <form id="register-form-element">
                     <div class="form-group">
@@ -157,7 +157,146 @@
         </div>
     </div>
 
+    <!-- Блок - Модальное окно создания транзакции -->
+    <div id="transaction-modal" class="modal">
+        <div class="modal-content">
+            <h2>Создать новую транзакцию</h2>
+            
+            <form id="transaction-form-element">
+                <div class="transaction-form-grid">
+                    
+                    <!-- Основная информация -->
+                    <div class="transaction-form-column">
+                        <h3>Основная информация</h3>
+                        <div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="transaction-type">
+                                        Тип транзакции
+                                    </label>
+                                    <select id="transaction-type" name="type" required>
+                                        <option value="1">Поступление</option>
+                                        <option value="2">Расход</option>
+                                    </select>
+                                </div>
 
+                                <div class="form-group">
+                                    <label for="transaction-amount">
+                                        Сумма
+                                    </label>
+                                    <input type="number" id="transaction-amount" name="amount" required min="0" step="0.01" placeholder="Введите сумму">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="transaction-category">
+                                        Категория
+                                    </label>
+                                    <select id="transaction-category" name="category" required>
+                                        <option value="">Выберите категорию</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="transaction-status">
+                                        Статус
+                                    </label>
+                                    <select id="transaction-status" name="status" required>
+                                        <option value="">Выберите статус</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="transaction-comment">
+                                    Описание
+                                </label>
+                                <textarea id="transaction-comment" name="comment" rows="3" placeholder="Введите описание транзакции"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Информация об отправителе -->
+                    <div class="transaction-form-column">
+                        <h3>Информация об отправителе</h3>
+                        <div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="transaction-sender-bank">
+                                        Банк отправителя
+                                    </label>
+                                    <select id="transaction-sender-bank" name="senderBank" required>
+                                        <option value="">Выберите банк</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="transaction-account">
+                                        Счет списания
+                                    </label>
+                                    <input type="text" id="transaction-account" name="accountNumber" required placeholder="Введите номер счета">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Информация о получателе -->
+                    <div class="transaction-form-column">
+                        <h3>Информация о получателе</h3>
+                        <div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="transaction-recipient-bank">
+                                        Банк получателя
+                                    </label>
+                                    <select id="transaction-recipient-bank" name="recipientBank" required>
+                                        <option value="">Выберите банк</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="transaction-legal-type">
+                                        Тип лица
+                                    </label>
+                                    <select id="transaction-legal-type" name="legalType" required>
+                                        <option value="">Выберите тип лица</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="transaction-phone">
+                                        Телефон получателя
+                                    </label>
+                                    <input type="tel" id="transaction-phone" name="recipientPhone" required placeholder="Введите номер телефона">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="transaction-recipient">
+                                        Счет получателя
+                                    </label>
+                                    <input type="text" id="transaction-recipient" name="recipientNumber" required placeholder="Введите номер счета">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="transaction-tin">
+                                        ИНН получателя
+                                    </label>
+                                    <input type="text" id="transaction-tin" name="recipientTIN" required placeholder="Введите ИНН">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="transaction-error" class="error-message"></div>
+
+                <button type="submit" class="auth-submit">
+                    Создать транзакцию
+                </button>
+            </form>
+        </div>
+    </div>
 
     <!-- Wrapper -->
 
@@ -174,8 +313,16 @@
                 <div class="sub-title">
                     Пеpиод
                 </div>
-
-                <!-- [ ] -->
+                <div class="filter-form">
+                    <div class="form-group">
+                        <label for="filter-date-from">От</label>
+                        <input type="datetime-local" id="filter-date-from" name="dateFrom">
+                    </div>
+                    <div class="form-group">
+                        <label for="filter-date-to">До</label>
+                        <input type="datetime-local" id="filter-date-to" name="dateTo">
+                    </div>
+                </div>
             </div>
 
 
@@ -186,8 +333,85 @@
                 <div class="sub-title">
                     Паpаметpы
                 </div>
+                <div class="filter-form">
+                    <div class="filter-main-fields">
+                        <div class="form-group">
+                            <label for="filter-type">Тип транзакции</label>
+                            <select id="filter-type" name="type">
+                                <option value="">Все типы</option>
+                                <option value="1">Поступление</option>
+                                <option value="2">Расход</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="filter-category">Категория</label>
+                            <select id="filter-category" name="category">
+                                <option value="">Все категории</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="filter-amount-from">Сумма от</label>
+                            <input type="number" id="filter-amount-from" name="amountFrom" min="0" step="0.01" placeholder="Например: 1000">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="filter-amount-to">Сумма до</label>
+                            <input type="number" id="filter-amount-to" name="amountTo" min="0" step="0.01" placeholder="Например: 5000">
+                        </div>
 
-                <!-- [] -->
+                        <div class="form-group">
+                            <label for="filter-status">Статус</label>
+                            <select id="filter-status" name="status">
+                                <option value="">Все статусы</option>
+                            </select>
+                        </div>
+    
+                        <div class="form-group">
+                            <label for="filter-legal-type">Тип лица</label>
+                            <select id="filter-legal-type" name="legalType">
+                                <option value="">Все типы</option>
+                                <option value="1">Физическое лицо</option>
+                                <option value="2">Юридическое лицо</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="ti-details">
+                        <div class="ti-details-toggle">Доп. параметры</div>
+                        <div class="ti-details-content">
+                            <div class="form-group">
+                                <label for="filter-sender-bank">Банк отправителя</label>
+                                <select id="filter-sender-bank" name="senderBank">
+                                    <option value="">Все банки</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-recipient-bank">Банк получателя</label>
+                                <select id="filter-recipient-bank" name="recipientBank">
+                                    <option value="">Все банки</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-account">Счет списания</label>
+                                <input type="text" id="filter-account" name="account" placeholder="Номер счета">
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-recipient">Счет получателя</label>
+                                <input type="text" id="filter-recipient" name="recipient" placeholder="Номер счета">
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-tin">ИНН получателя</label>
+                                <input type="text" id="filter-tin" name="tin" placeholder="ИНН">
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-phone">Телефон получателя</label>
+                                <input type="tel" id="filter-phone" name="phone" placeholder="Телефон">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
 
@@ -219,37 +443,33 @@
             <input checked type="radio" name="expand" id="button-1" class="checkbox">
             <label for="button-1" id="summary-account" class="block">
                 <div class="title center">
-                    Сводка по счету
+                    Сводка по транзакциям
                 </div>
             </label>
             <div id="account-summary-container" class="tabs-content">
 
-                <!-- Блок - Сводка по счету -->
+                <!-- Блок - Сводка по транзакциям -->
 
                 <div class="dashboard-summary">
                     <div class="summary-item">
                         <div class="summary-label">Всего тpанзакций</div>
-                        <div class="summary-value">8920</div>
-                        <div class="summary-trend trend-up">+12% за месяц</div>
+                        <div class="summary-value"></div>
                     </div>
                     <div class="summary-item">
                         <div class="summary-label">Сумма поступлений</div>
-                        <div class="summary-value">1,450,800p</div>
-                        <div class="summary-trend trend-up">+8% за месяц</div>
+                        <div class="summary-value"></div>
                     </div>
                     <div class="summary-item">
                         <div class="summary-label">Сумма pасходов</div>
-                        <div class="summary-value">980,500p</div>
-                        <div class="summary-trend trend-down">+5% за месяц</div>
+                        <div class="summary-value"></div>
                     </div>
                     <div class="summary-item">
                         <div class="summary-label">Баланс</div>
-                        <div class="summary-value">470,300p</div>
-                        <div class="summary-trend trend-up">+15% за месяц</div>
+                        <div class="summary-value"></div>
                     </div>
                 </div>
 
-                <!-- // Блок - Сводка по счету -->
+                <!-- // Блок - Сводка по транзакциям -->
 
             </div>
 
@@ -411,6 +631,5 @@
     </div>
 
     <script src='frontend/main.js'></script>
-    <script src='frontend/dashboard.js'></script>
 </body>
 </html>

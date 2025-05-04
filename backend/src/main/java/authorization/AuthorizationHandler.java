@@ -28,7 +28,7 @@ public class AuthorizationHandler {
     //загрузка юзера из БД
     private User loadUser(String email) throws SQLException {
         String sql =
-                "SELECT user_id, user_name, email " +
+                "SELECT user_id, full_name, email " +
                         "FROM users " +
                         "WHERE email = ?";
 
@@ -42,7 +42,7 @@ public class AuthorizationHandler {
                     throw new SQLException("User not found!");
                 }
                 long id = rs.getInt   ("user_id");
-                String fullName = rs.getString("user_name");
+                String fullName = rs.getString("full_name");
                 String mail = rs.getString("email");
 
                 return new User(id, fullName, mail);
@@ -81,7 +81,7 @@ public class AuthorizationHandler {
 
     //добавление юзера в БД
     private void insertUserIntoDB(String fullName, String password, String email) throws SQLException {
-        String sql = "INSERT INTO users (user_name, password_hash, email) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO users (full_name, password_hash, email) VALUES (?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
