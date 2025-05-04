@@ -1,0 +1,186 @@
+/* Dashboard Styles */
+
+:root {
+    --primary-color: #1E1E1E;
+    --secondary-color: #1E1E1E;
+    --accent-color: #3498db;
+    --success-color: #2ecc71;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+    --light-color: #ecf0f1;
+    --dark-color: #2c3e50;
+    --text-color: #333;
+    --border-color: #ddd;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Dashboard Container */
+#dashboard-container, #account-summary-container {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    margin: 0 auto;
+    border-radius: 10px;
+    box-shadow: 0 0 15px var(--shadow-color);
+    background-color: var(--light-color);
+    overflow: hidden;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    width: 100%;
+}
+
+/* Dashboard Card */
+.dashboard-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px var(--shadow-color);
+    padding: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px var(--shadow-color);
+}
+
+.dashboard-card-title {
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 120%;
+    color: var(--primary-color);
+
+    margin-bottom: 20px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dashboard-card-wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.dashboard-card-body {
+    position: relative;
+    height: 300px;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Full Width Card */
+.dashboard-card.full-width {
+    grid-column: span 2;
+}
+
+/* Half Width Card */
+.dashboard-card.half-width {
+    grid-column: span 1;
+}
+
+/* Блок Сводка */
+.summary-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent-color);
+}
+
+/* Dashboard Summary */
+.dashboard-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.summary-item {
+    flex: 1;
+    min-width: 200px;
+    text-align: center;
+    padding: 15px;
+    box-sizing: border-box;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px var(--shadow-color);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.summary-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px var(--shadow-color);
+}
+
+.summary-label {
+    font-size: 16px;
+    line-height: 120%;
+    color: var(--secondary-color);
+
+    margin-bottom: 10px;
+}
+
+.summary-value {
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 120%;
+    color: var(--primary-color);
+}
+
+.summary-trend {
+    font-size: 14px;
+    font-style: italic;
+    line-height: 120%;
+
+    margin-top: 8px;
+}
+
+.trend-up {
+    color: var(--success-color);
+}
+
+.trend-down {
+    color: var(--danger-color);
+}
+
+/* Chart Container */
+.chart-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Period Selector */
+.period-selector {
+    display: flex;
+    gap: 10px;
+}
+
+.period-button {
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: white;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.period-button:hover {
+    background-color: var(--light-color);
+}
+
+.period-button.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
