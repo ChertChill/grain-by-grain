@@ -1,3 +1,15 @@
+1) RestAPI_добавление_логов.java  
+настройка логов HTTP-запросов в Javalin  
+2) logging.zip  
+пакет классов для логирования HTTP-запросов  
+3) триггеры_все.zip  
+файлы с кодом для создания таблиц users_audit, transactions_audit, триггерных функций и самих триггеров  
+4) all_triggers.sql  
+sql-код, собранный в один скрипт  
+
+
+
+
 В классе RestAPI добавляем член logRepository  
 после старта Javalin выполняем вызов  app.before(...), app.after(...) и app.exception(...) как приведено ниже:  
 
