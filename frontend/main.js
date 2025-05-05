@@ -444,9 +444,7 @@ function getUserTransactions() {
             displayTransactions(data.transactions, data.summary, data.dashboards);
             // Устанавливаем период "Ежемесячно"
             const monthlyButton = document.querySelector('.period-button[data-period="monthly"]');
-            if (monthlyButton) {
-                monthlyButton.click();
-            }
+            if (monthlyButton) monthlyButton.click();
         })
         .catch(error => {
             console.error('Ошибка:', error);
@@ -1095,6 +1093,14 @@ function initDashboard(dashboards) {
     const dashboardContainer = document.getElementById('dashboard-container');
     if (!dashboardContainer) return;
 
+    // Destroy existing charts if they exist
+    Object.values(charts).forEach(chart => {
+        if (chart) {
+            chart.destroy();
+        }
+    });
+    charts = {}; // Reset charts object
+
     // Load Chart.js from CDN
     loadScript('https://cdn.jsdelivr.net/npm/chart.js', () => {
         // Generate mock data structure with empty values
@@ -1142,23 +1148,33 @@ function setupPeriodSelector(data) {
 
 // Update charts based on selected period
 function updateChartsForPeriod(data) {
+    if (!data) return;
+
     // Update transactions by period chart
-    updateChartData(charts.transactionsByPeriod, data.transactionsByPeriod[currentPeriod]);
+    if (charts.transactionsByPeriod && data.transactionsByPeriod && data.transactionsByPeriod[currentPeriod]) {
+        updateChartData(charts.transactionsByPeriod, data.transactionsByPeriod[currentPeriod]);
+    }
 
     // Update debit transactions chart
-    updateChartData(charts.debitTransactions, data.transactionsByType.debit[currentPeriod]);
+    if (charts.debitTransactions && data.transactionsByType && data.transactionsByType.debit && data.transactionsByType.debit[currentPeriod]) {
+        updateChartData(charts.debitTransactions, data.transactionsByType.debit[currentPeriod]);
+    }
 
     // Update credit transactions chart
-    updateChartData(charts.creditTransactions, data.transactionsByType.credit[currentPeriod]);
+    if (charts.creditTransactions && data.transactionsByType && data.transactionsByType.credit && data.transactionsByType.credit[currentPeriod]) {
+        updateChartData(charts.creditTransactions, data.transactionsByType.credit[currentPeriod]);
+    }
 
     // Update income vs expense chart
-    updateIncomeExpenseChart(charts.incomeExpenseComparison, data.incomeVsExpense[currentPeriod]);
+    if (charts.incomeExpenseComparison && data.incomeVsExpense && data.incomeVsExpense[currentPeriod]) {
+        updateIncomeExpenseChart(charts.incomeExpenseComparison, data.incomeVsExpense[currentPeriod]);
+    }
 }
 
 // Helper function to update chart data
 function updateChartData(chart, newData) {
-    if (!newData || !newData.labels || !newData.values) {
-        console.error('Invalid data format for chart update:', newData);
+    if (!chart || !newData || !newData.labels || !newData.values) {
+        console.warn('Invalid data or chart for update:', { chart, newData });
         return;
     }
     
@@ -1175,8 +1191,8 @@ function updateChartData(chart, newData) {
 
 // Helper function to update income vs expense chart
 function updateIncomeExpenseChart(chart, newData) {
-    if (!newData || !newData.labels || !newData.income || !newData.expense) {
-        console.error('Invalid data format for income/expense chart update:', newData);
+    if (!chart || !newData || !newData.labels || !newData.income || !newData.expense) {
+        console.warn('Invalid data or chart for income/expense update:', { chart, newData });
         return;
     }
     
