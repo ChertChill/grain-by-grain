@@ -279,12 +279,157 @@ function checkAuthentication() {
 
 
 
-// Функция для получения транзакций пользователя
+// Функция для отображения списка транзакций
+function displayTransactions(transactions, summary, dashboards) {
+    const transactionsList = document.getElementById('transactions-list');
+    transactionsList.innerHTML = '';
+
+    if (transactions && Array.isArray(transactions)) {
+        // Reverse the array to show newest transactions first
+        transactions.reverse().forEach(transaction => {
+            const transactionEl = document.createElement('div');
+            transactionEl.className = 'transaction-item';
+            transactionEl.setAttribute('data-transaction-id', transaction.transactionID);
+
+            // Format date
+            const date = new Date(Date.UTC(...transaction.transactionDate));
+            const formattedDate = date.toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            // Create transaction HTML
+            transactionEl.innerHTML = `
+                <div class="ti-content">
+                    <div class="ti-main-info">
+                        <div class="ti-type ${transaction.type.typeID === 1 ? 'income' : 'expense'}">
+                            ${transaction.type.name}
+                        </div>
+                        <div class="ti-status ${getStatusClass(transaction.status.name)}">
+                            ${transaction.status.name}
+                        </div>
+                    </div>
+                    
+                    <div class="ti-secondary-info">
+                        <div class="ti-amount-block">
+                            <div class="ti-info-group">
+                                <div class="ti-info-label">Сумма</div>
+                                <div class="ti-info-value ti-amount">
+                                    ${transaction.amount.toLocaleString('ru-RU')} р
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ti-details-block">
+                            <div class="ti-info-group">
+                                <div class="ti-info-label">Категория</div>
+                                <div class="ti-info-value ti-category">${transaction.category.name}</div>
+                            </div>
+                            <div class="ti-info-group">
+                                <div class="ti-info-label">Описание</div>
+                                <div class="ti-info-value ti-comment">${transaction.comment}</div>
+                            </div>
+                        </div>
+
+                        <div class="ti-amount-block">
+                            <div class="ti-info-group">
+                                <div class="ti-info-label">Дата</div>
+                                <div class="ti-info-value">
+                                    ${formattedDate}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ti-details">
+                        <div class="ti-details-toggle">Показать детали</div>
+                            <div class="ti-details-content">
+                                <div class="ti-detail-item">
+                                    <div class="ti-detail-label">Банк отправителя</div>
+                                    <div class="ti-detail-value">${transaction.senderBank.name}</div>
+                                </div>
+                                <div class="ti-detail-item">
+                                    <div class="ti-detail-label">Банк получателя</div>
+                                    <div class="ti-detail-value">${transaction.recipientBank.name}</div>
+                                </div>
+                                <div class="ti-detail-item">
+                                    <div class="ti-detail-label">Тип лица</div>
+                                    <div class="ti-detail-value">${transaction.legalType.name}</div>
+                                </div>
+                                <div class="ti-detail-item">
+                                    <div class="ti-detail-label">Счет списания</div>
+                                    <div class="ti-detail-value">${transaction.accountNumber}</div>
+                                </div>
+                                <div class="ti-detail-item">
+                                    <div class="ti-detail-label">Счет получателя</div>
+                                    <div class="ti-detail-value">${transaction.recipientNumber}</div>
+                                </div>
+                                <div class="ti-detail-item">
+                                    <div class="ti-detail-label">ИНН получателя</div>
+                                    <div class="ti-detail-value">${transaction.recipientTIN}</div>
+                                </div>
+                                <div class="ti-detail-item">
+                                    <div class="ti-detail-label">Телефон получателя</div>
+                                    <div class="ti-detail-value">${transaction.recipientPhone}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ${transaction.status.name === 'Новая' ? `
+                <div class="ti-buttons">
+                    <div id="ti-edit" class="ti__button"></div>
+                    <div id="ti-apply" class="ti__button"></div>
+                    <div id="ti-delete" class="ti__button"></div>
+                </div>
+                ` : ''}
+            `;
+
+            // Add click handler for details toggle
+            const detailsToggle = transactionEl.querySelector('.ti-details-toggle');
+            const detailsContent = transactionEl.querySelector('.ti-details-content');
+            
+            detailsToggle.addEventListener('click', () => {
+                detailsContent.classList.toggle('active');
+                detailsToggle.classList.toggle('active');
+                detailsToggle.textContent = detailsToggle.classList.contains('active') 
+                    ? 'Скрыть детали' 
+                    : 'Показать детали';
+            });
+
+            // Add click handler for edit button only if it exists
+            const editButton = transactionEl.querySelector('#ti-edit');
+            if (editButton) {
+                editButton.addEventListener('click', () => {
+                    editTransaction(transaction.transactionID);
+                });
+            }
+
+            transactionsList.appendChild(transactionEl);
+        });
+
+        // Update transactions summary if provided
+        if (summary) {
+            updateTransactionsSummary(summary);
+        }
+
+        // Initialize dashboard if provided
+        if (dashboards) {
+            initDashboard(dashboards);
+        }
+    }
+}
+
+// Обновляем функцию getUserTransactions
 function getUserTransactions() {
     const transactionsError = document.getElementById('transactions-error');
     if (transactionsError) {
         transactionsError.textContent = '';
     }
+
+    // Переключаем на таб "Сводка по транзакциям"
+    document.getElementById('button-1').checked = true;
 
     const token = localStorage.getItem('authToken');
 
@@ -296,139 +441,62 @@ function getUserTransactions() {
     })
         .then(response => response.json())
         .then(data => {
-            const transactionsList = document.getElementById('transactions-list');
-            transactionsList.innerHTML = ''; // Clear existing transactions
-
-            if (data.transactions && Array.isArray(data.transactions)) {
-                data.transactions.forEach(transaction => {
-                    const transactionEl = document.createElement('div');
-                    transactionEl.className = 'transaction-item';
-                    transactionEl.setAttribute('data-transaction-id', transaction.transactionID);
-
-                    // Format date
-                    const date = new Date(Date.UTC(...transaction.transactionDate));
-                    const formattedDate = date.toLocaleDateString('ru-RU', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    });
-
-                    // Create transaction HTML
-                    transactionEl.innerHTML = `
-                        <div class="ti-content">
-                            <div class="ti-main-info">
-                                <div class="ti-type ${transaction.type.typeID === 1 ? 'income' : 'expense'}">
-                                    ${transaction.type.name}
-                                </div>
-                                <div class="ti-status ${getStatusClass(transaction.status.name)}">
-                                    ${transaction.status.name}
-                                </div>
-                            </div>
-                            
-                            <div class="ti-secondary-info">
-                                <div class="ti-amount-block">
-                                    <div class="ti-info-group">
-                                        <div class="ti-info-label">Сумма</div>
-                                        <div class="ti-info-value ti-amount">
-                                            ${transaction.amount.toLocaleString('ru-RU')} р
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="ti-details-block">
-                                    <div class="ti-info-group">
-                                        <div class="ti-info-label">Категория</div>
-                                        <div class="ti-info-value ti-category">${transaction.category.name}</div>
-                                    </div>
-                                    <div class="ti-info-group">
-                                        <div class="ti-info-label">Описание</div>
-                                        <div class="ti-info-value ti-comment">${transaction.comment}</div>
-                                    </div>
-                                </div>
-
-                                <div class="ti-amount-block">
-                                    <div class="ti-info-group">
-                                        <div class="ti-info-label">Дата</div>
-                                        <div class="ti-info-value">
-                                            ${formattedDate}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="ti-details">
-                                <div class="ti-details-toggle">Показать детали</div>
-                                    <div class="ti-details-content">
-                                        <div class="ti-detail-item">
-                                            <div class="ti-detail-label">Банк отправителя</div>
-                                            <div class="ti-detail-value">${transaction.senderBank.name}</div>
-                                        </div>
-                                        <div class="ti-detail-item">
-                                            <div class="ti-detail-label">Банк получателя</div>
-                                            <div class="ti-detail-value">${transaction.recipientBank.name}</div>
-                                        </div>
-                                        <div class="ti-detail-item">
-                                            <div class="ti-detail-label">Тип лица</div>
-                                            <div class="ti-detail-value">${transaction.legalType.name}</div>
-                                        </div>
-                                        <div class="ti-detail-item">
-                                            <div class="ti-detail-label">Счет списания</div>
-                                            <div class="ti-detail-value">${transaction.accountNumber}</div>
-                                        </div>
-                                        <div class="ti-detail-item">
-                                            <div class="ti-detail-label">Счет получателя</div>
-                                            <div class="ti-detail-value">${transaction.recipientNumber}</div>
-                                        </div>
-                                        <div class="ti-detail-item">
-                                            <div class="ti-detail-label">ИНН получателя</div>
-                                            <div class="ti-detail-value">${transaction.recipientTIN}</div>
-                                        </div>
-                                        <div class="ti-detail-item">
-                                            <div class="ti-detail-label">Телефон получателя</div>
-                                            <div class="ti-detail-value">${transaction.recipientPhone}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="ti-buttons">
-                            <div id="ti-edit" class="ti__button"></div>
-                            <div id="ti-apply" class="ti__button"></div>
-                            <div id="ti-delete" class="ti__button"></div>
-                        </div>
-                    `;
-
-                    // Add click handler for details toggle
-                    const detailsToggle = transactionEl.querySelector('.ti-details-toggle');
-                    const detailsContent = transactionEl.querySelector('.ti-details-content');
-                    
-                    detailsToggle.addEventListener('click', () => {
-                        detailsContent.classList.toggle('active');
-                        detailsToggle.classList.toggle('active');
-                        detailsToggle.textContent = detailsToggle.classList.contains('active') 
-                            ? 'Скрыть детали' 
-                            : 'Показать детали';
-                    });
-
-                    // Add click handler for edit button
-                    const editButton = transactionEl.querySelector('#ti-edit');
-                    editButton.addEventListener('click', () => {
-                        editTransaction(transaction.transactionID);
-                    });
-
-                    transactionsList.appendChild(transactionEl);
-                });
-
-                // Update transactions summary
-                updateTransactionsSummary(data.summary);
-
-                // Initialize dashboard with dashboard data instead of transactions
-                initDashboard(data.dashboards);
+            displayTransactions(data.transactions, data.summary, data.dashboards);
+            // Устанавливаем период "Ежемесячно"
+            const monthlyButton = document.querySelector('.period-button[data-period="monthly"]');
+            if (monthlyButton) {
+                monthlyButton.click();
             }
         })
         .catch(error => {
             console.error('Ошибка:', error);
             transactionsError.textContent = error.message || 'Ошибка при загрузке транзакций';
+        });
+}
+
+// Обновляем функцию applyFilters
+function applyFilters() {
+    const filters = {
+        dateFrom: document.getElementById('filter-date-from').value,
+        dateTo: document.getElementById('filter-date-to').value,
+        type: document.getElementById('filter-type').value,
+        category: document.getElementById('filter-category').value,
+        amountFrom: document.getElementById('filter-amount-from').value,
+        amountTo: document.getElementById('filter-amount-to').value,
+        status: document.getElementById('filter-status').value,
+        senderBank: document.getElementById('filter-sender-bank').value,
+        recipientBank: document.getElementById('filter-recipient-bank').value,
+        account: document.getElementById('filter-account').value,
+        recipient: document.getElementById('filter-recipient').value,
+        tin: document.getElementById('filter-tin').value,
+        phone: document.getElementById('filter-phone').value,
+        legalType: document.getElementById('filter-legal-type').value
+    };
+
+    // Переключаем на таб "Сводка по транзакциям"
+    document.getElementById('button-1').checked = true;
+
+    const token = localStorage.getItem('authToken');
+    const queryString = buildQueryString(filters);
+
+    fetch(`http://localhost:7070/api/get_transactions?${queryString}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            displayTransactions(data.transactions, data.summary, data.dashboards);
+            // Устанавливаем период "Ежемесячно"
+            const monthlyButton = document.querySelector('.period-button[data-period="monthly"]');
+            if (monthlyButton) {
+                monthlyButton.click();
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            document.getElementById('transactions-error').textContent = 'Ошибка при загрузке транзакций';
         });
 }
 
@@ -481,102 +549,95 @@ transactionModal.addEventListener('click', (e) => {
 
 
 
-// Функция для загрузки данных для формы (категории, банки, типы лиц)
+// Функция для загрузки всех справочных данных
+function loadReferenceData() {
+    const token = localStorage.getItem('authToken');
+    return fetch('http://localhost:7070/api/reference_data', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Сохраняем данные в localStorage для повторного использования
+        localStorage.setItem('referenceData', JSON.stringify(data));
+        return data;
+    })
+    .catch(error => {
+        console.error('Ошибка загрузки справочных данных:', error);
+        return null;
+    });
+}
 
+// Функция для загрузки данных для формы (категории, банки, типы лиц)
 function loadTransactionFormData() {
     const token = localStorage.getItem('authToken');
-    const promises = [];
     
-    // Загрузка категорий
-    const categoriesPromise = fetch('http://localhost:7070/api/get_categories', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    })
-        .then(response => response.json())
-        .then(data => {
-            const categorySelect = document.getElementById('transaction-category');
-            categorySelect.innerHTML = '<option value="">Выберите категорию</option>';
-            data.categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category.id;
-                option.textContent = category.name;
-                categorySelect.appendChild(option);
-            });
-            return data.categories;
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки категорий:', error);
-            return [];
-        });
-    promises.push(categoriesPromise);
+    // Пытаемся получить данные из localStorage
+    const cachedData = localStorage.getItem('referenceData');
+    if (cachedData) {
+        const data = JSON.parse(cachedData);
+        populateTransactionFormData(data);
+        return Promise.resolve(data);
+    }
 
-    // Загрузка статусов
-    const statusesPromise = fetch('http://localhost:7070/api/get_statuses', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
+    // Если данных нет в кэше, загружаем их
+    return loadReferenceData().then(data => {
+        if (data) {
+            populateTransactionFormData(data);
         }
-    })
-        .then(response => response.json())
-        .then(data => {
-            const statusSelect = document.getElementById('transaction-status');
-            const filterStatusSelect = document.getElementById('filter-status');
-            
-            const defaultOption = '<option value="">Выберите статус</option>';
-            statusSelect.innerHTML = defaultOption;
-            filterStatusSelect.innerHTML = '<option value="">Все статусы</option>';
-            
-            data.statuses.forEach(status => {
-                const option = document.createElement('option');
-                option.value = status.id;
-                option.textContent = status.name;
-                
-                // Клонируем опцию для обоих селектов
-                statusSelect.appendChild(option.cloneNode(true));
-                filterStatusSelect.appendChild(option);
-            });
-            return data.statuses;
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки статусов:', error);
-            return [];
-        });
-    promises.push(statusesPromise);
+        return data;
+    });
+}
 
-    // Загрузка банков
-    const banksPromise = fetch('http://localhost:7070/api/get_banks', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    })
-        .then(response => response.json())
-        .then(data => {
-            const senderBankSelect = document.getElementById('transaction-sender-bank');
-            const recipientBankSelect = document.getElementById('transaction-recipient-bank');
-            
-            const defaultOption = '<option value="">Выберите банк</option>';
-            senderBankSelect.innerHTML = defaultOption;
-            recipientBankSelect.innerHTML = defaultOption;
-            
-            data.banks.forEach(bank => {
-                const option = document.createElement('option');
-                option.value = bank.id;
-                option.textContent = bank.name;
-                
-                // Клонируем опцию для обоих селектов
-                senderBankSelect.appendChild(option.cloneNode(true));
-                recipientBankSelect.appendChild(option);
-            });
-            return data.banks;
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки банков:', error);
-            return [];
-        });
-    promises.push(banksPromise);
+// Функция для заполнения формы справочными данными
+function populateTransactionFormData(data) {
+    // Заполнение категорий
+    const categorySelect = document.getElementById('transaction-category');
+    categorySelect.innerHTML = '<option value="">Выберите категорию</option>';
+    data.categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.categoryID;
+        option.textContent = category.name;
+        categorySelect.appendChild(option);
+    });
+
+    // Заполнение статусов
+    const statusSelect = document.getElementById('transaction-status');
+    const filterStatusSelect = document.getElementById('filter-status');
+    
+    const defaultOption = '<option value="">Выберите статус</option>';
+    statusSelect.innerHTML = defaultOption;
+    filterStatusSelect.innerHTML = '<option value="">Все статусы</option>';
+    
+    data.statuses.forEach(status => {
+        const option = document.createElement('option');
+        option.value = status.statusID;
+        option.textContent = status.name;
+        
+        // Клонируем опцию для обоих селектов
+        statusSelect.appendChild(option.cloneNode(true));
+        filterStatusSelect.appendChild(option);
+    });
+
+    // Заполнение банков
+    const senderBankSelect = document.getElementById('transaction-sender-bank');
+    const recipientBankSelect = document.getElementById('transaction-recipient-bank');
+    
+    const defaultBankOption = '<option value="">Выберите банк</option>';
+    senderBankSelect.innerHTML = defaultBankOption;
+    recipientBankSelect.innerHTML = defaultBankOption;
+    
+    data.banks.forEach(bank => {
+        const option = document.createElement('option');
+        option.value = bank.bankID;
+        option.textContent = bank.name;
+        
+        // Клонируем опцию для обоих селектов
+        senderBankSelect.appendChild(option.cloneNode(true));
+        recipientBankSelect.appendChild(option);
+    });
 
     // Заполнение типов лиц (фиксированные значения)
     const legalTypeSelect = document.getElementById('transaction-legal-type');
@@ -593,8 +654,6 @@ function loadTransactionFormData() {
         option.textContent = type.name;
         legalTypeSelect.appendChild(option);
     });
-
-    return Promise.all(promises);
 }
 
 // Функция для редактирования транзакции
@@ -627,10 +686,10 @@ function editTransaction(transactionId) {
             document.getElementById('transaction-amount').value = parseFloat(amountElement.textContent.replace(/[^\d.-]/g, ''));
             document.getElementById('transaction-comment').value = commentElement.textContent;
 
-            // Находим нужные опции в селектах по тексту
+            // Находим нужные опции в селектах по тексту и устанавливаем значения
             const categorySelect = document.getElementById('transaction-category');
             const categoryOption = Array.from(categorySelect.options).find(option => 
-                option.textContent === categoryElement.textContent
+                option.textContent.trim() === categoryElement.textContent.trim()
             );
             if (categoryOption) {
                 categorySelect.value = categoryOption.value;
@@ -639,7 +698,7 @@ function editTransaction(transactionId) {
             // Заполняем статус
             const statusSelect = document.getElementById('transaction-status');
             const statusOption = Array.from(statusSelect.options).find(option => 
-                option.textContent === statusElement.textContent
+                option.textContent.trim() === statusElement.textContent.trim()
             );
             if (statusOption) {
                 statusSelect.value = statusOption.value;
@@ -653,13 +712,22 @@ function editTransaction(transactionId) {
                     const value = item.querySelector('.ti-detail-value').textContent;
 
                     switch (label) {
-                        case 'Банк':
+                        case 'Банк отправителя':
                             const senderBankSelect = document.getElementById('transaction-sender-bank');
                             const senderBankOption = Array.from(senderBankSelect.options).find(option => 
                                 option.textContent === value
                             );
                             if (senderBankOption) {
                                 senderBankSelect.value = senderBankOption.value;
+                            }
+                            break;
+                        case 'Банк получателя':
+                            const recipientBankSelect = document.getElementById('transaction-recipient-bank');
+                            const recipientBankOption = Array.from(recipientBankSelect.options).find(option => 
+                                option.textContent === value
+                            );    
+                            if (recipientBankOption) {
+                                recipientBankSelect.value = recipientBankOption.value;
                             }
                             break;
                         case 'Счет списания':
@@ -695,8 +763,63 @@ function editTransaction(transactionId) {
 
 
 
-// Обработка отправки формы создания/редактирования транзакции
+// Утилиты для работы с телефонными номерами
+const PhoneNumberUtils = {
+    // Очистка номера от нецифровых символов
+    clean: function(phone) {
+        return phone.replace(/\D/g, '');
+    },
 
+    // Проверка валидности номера
+    isValid: function(phone) {
+        // Проверяем, что номер начинается с 8 или +7
+        if (!(phone.startsWith('8') || phone.startsWith('+7'))) {
+            return false;
+        }
+        // Проверяем длину после удаления нецифровых символов
+        const cleanPhone = this.clean(phone);
+        return cleanPhone.length === 11;
+    },
+
+    // Получение сообщения об ошибке
+    getErrorMessage: function() {
+        return 'Номер телефона должен начинаться с 8 или +7 и содержать 11 цифр';
+    },
+
+    // Установка валидации для поля ввода
+    setupValidation: function(input) {
+        // Создаем элемент для отображения ошибки
+        const errorElement = document.createElement('div');
+        errorElement.className = 'input-error';
+        input.parentNode.appendChild(errorElement);
+
+        input.addEventListener('input', (e) => {
+            const value = e.target.value;
+            if (value && !this.isValid(value)) {
+                errorElement.textContent = this.getErrorMessage();
+                errorElement.classList.add('active');
+                input.classList.add('error');
+            } else {
+                errorElement.classList.remove('active');
+                input.classList.remove('error');
+            }
+        });
+
+        input.addEventListener('blur', (e) => {
+            const value = e.target.value;
+            if (value && !this.isValid(value)) {
+                errorElement.textContent = this.getErrorMessage();
+                errorElement.classList.add('active');
+                input.classList.add('error');
+            } else {
+                errorElement.classList.remove('active');
+                input.classList.remove('error');
+            }
+        });
+    }
+};
+
+// Обработка отправки формы создания/редактирования транзакции
 transactionForm.addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -707,8 +830,15 @@ transactionForm.addEventListener('submit', function(e) {
     const phoneNumber = formData.get('recipientPhone');
 
     // Проверяем номер телефона
-    if (!validatePhoneNumber(phoneNumber)) {
-        transactionError.textContent = 'Номер телефона должен начинаться с 8 и содержать 11 цифр';
+    if (!PhoneNumberUtils.isValid(phoneNumber)) {
+        // Находим поле ввода телефона и показываем ошибку рядом с ним
+        const phoneInput = document.getElementById('transaction-phone');
+        const errorElement = phoneInput.parentNode.querySelector('.input-error');
+        if (errorElement) {
+            errorElement.textContent = PhoneNumberUtils.getErrorMessage();
+            errorElement.classList.add('active');
+            phoneInput.classList.add('error');
+        }
         return;
     }
 
@@ -721,7 +851,7 @@ transactionForm.addEventListener('submit', function(e) {
         accountNumber: formData.get('accountNumber'),
         recipientNumber: formData.get('recipientNumber'),
         recipientTIN: formData.get('recipientTIN'),
-        recipientPhone: formatPhoneNumber(phoneNumber),
+        recipientPhone: PhoneNumberUtils.clean(phoneNumber),
         legalType: parseInt(formData.get('legalType')),
         comment: formData.get('comment')
     };
@@ -763,78 +893,63 @@ transactionForm.addEventListener('submit', function(e) {
 
 // Загрузка данных для фильтров
 function loadFilterData() {
-    const token = localStorage.getItem('authToken');
+    // Пытаемся получить данные из localStorage
+    const cachedData = localStorage.getItem('referenceData');
+    if (cachedData) {
+        const data = JSON.parse(cachedData);
+        populateFilterData(data);
+        return;
+    }
+
+    // Если данных нет в кэше, загружаем их
+    loadReferenceData().then(data => {
+        if (data) {
+            populateFilterData(data);
+        }
+    });
+}
+
+// Функция для заполнения фильтров справочными данными
+function populateFilterData(data) {
+    // Заполнение категорий
+    const categorySelect = document.getElementById('filter-category');
+    categorySelect.innerHTML = '<option value="">Все категории</option>';
+    data.categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.categoryID;
+        option.textContent = category.name;
+        categorySelect.appendChild(option);
+    });
+
+    // Заполнение статусов
+    const statusSelect = document.getElementById('filter-status');
+    statusSelect.innerHTML = '<option value="">Все статусы</option>';
+    data.statuses.forEach(status => {
+        const option = document.createElement('option');
+        option.value = status.statusID;
+        option.textContent = status.name;
+        statusSelect.appendChild(option);
+    });
+
+    // Заполнение банков
+    const senderBankSelect = document.getElementById('filter-sender-bank');
+    const recipientBankSelect = document.getElementById('filter-recipient-bank');
     
-    // Загрузка категорий
-    fetch('http://localhost:7070/api/get_categories', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    })
-        .then(response => response.json())
-        .then(data => {
-            const categorySelect = document.getElementById('filter-category');
-            data.categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category.id;
-                option.textContent = category.name;
-                categorySelect.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки категорий:', error);
-        });
+    senderBankSelect.innerHTML = '<option value="">Все банки</option>';
+    recipientBankSelect.innerHTML = '<option value="">Все банки</option>';
+    
+    data.banks.forEach(bank => {
+        // Клонируем опцию для обоих селектов
+        const senderOption = document.createElement('option');
+        senderOption.value = bank.bankID;
+        senderOption.textContent = bank.name;
+        senderBankSelect.appendChild(senderOption);
 
-    // Загрузка статусов
-    fetch('http://localhost:7070/api/get_statuses', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    })
-        .then(response => response.json())
-        .then(data => {
-            const statusSelect = document.getElementById('filter-status');
-            data.statuses.forEach(status => {
-                const option = document.createElement('option');
-                option.value = status.id;
-                option.textContent = status.name;
-                statusSelect.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки статусов:', error);
-        });
-
-    // Загрузка банков
-    fetch('http://localhost:7070/api/get_banks', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    })
-        .then(response => response.json())
-        .then(data => {
-            const senderBankSelect = document.getElementById('filter-sender-bank');
-            const recipientBankSelect = document.getElementById('filter-recipient-bank');
-            
-            data.banks.forEach(bank => {
-                // Клонируем опцию для обоих селектов
-                const senderOption = document.createElement('option');
-                senderOption.value = bank.id;
-                senderOption.textContent = bank.name;
-                senderBankSelect.appendChild(senderOption);
-
-                const recipientOption = document.createElement('option');
-                recipientOption.value = bank.id;
-                recipientOption.textContent = bank.name;
-                recipientBankSelect.appendChild(recipientOption);
-            });
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки банков:', error);
-        });
+        const recipientOption = document.createElement('option');
+        recipientOption.value = bank.bankID;
+        recipientOption.textContent = bank.name;
+        recipientBankSelect.appendChild(recipientOption);
+    });
 }
 
 // Функция для форматирования даты в SQL datetime формат
@@ -845,24 +960,10 @@ function formatDateToSQL(date) {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
-    return `${year}-${month}-${day}${hours}${minutes}${seconds}`;
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 }
 
-// Функция для валидации номера телефона
-function validatePhoneNumber(phone) {
-    // Удаляем все нецифровые символы
-    const cleanPhone = phone.replace(/\D/g, '');
-    // Проверяем, что номер начинается с 8 и имеет правильную длину
-    return cleanPhone.startsWith('8') && cleanPhone.length === 11;
-}
 
-// Функция для форматирования номера телефона
-function formatPhoneNumber(phone) {
-    // Удаляем все нецифровые символы
-    const cleanPhone = phone.replace(/\D/g, '');
-    // Если номер не начинается с 8, добавляем 8 в начало
-    return cleanPhone.startsWith('8') ? cleanPhone : '8' + cleanPhone;
-}
 
 // Функция для построения query string из параметров фильтра
 function buildQueryString(filters) {
@@ -878,12 +979,20 @@ function buildQueryString(filters) {
     
     // Форматируем даты в SQL datetime формат
     if (filters.dateFrom) {
+        // Преобразуем строку datetime-local в объект Date
         const dateFrom = new Date(filters.dateFrom);
-        queryParams.append('transaction_date-gt', formatDateToSQL(dateFrom));
+        // Проверяем, что дата валидна
+        if (!isNaN(dateFrom.getTime())) {
+            queryParams.append('transaction_date-gt', formatDateToSQL(dateFrom));
+        }
     }
     if (filters.dateTo) {
+        // Преобразуем строку datetime-local в объект Date
         const dateTo = new Date(filters.dateTo);
-        queryParams.append('transaction_date-lw', formatDateToSQL(dateTo));
+        // Проверяем, что дата валидна
+        if (!isNaN(dateTo.getTime())) {
+            queryParams.append('transaction_date-lw', formatDateToSQL(dateTo));
+        }
     }
     
     // Используем ID вместо текстовых значений с правильными именами параметров
@@ -909,13 +1018,12 @@ function buildQueryString(filters) {
         const recipientBankId = recipientBankSelect.value;
         queryParams.append('recipient_bank_id-num', recipientBankId);
     }
-    if (filters.account) queryParams.append('account_number-num', filters.account);
-    if (filters.recipient) queryParams.append('recipient_number-num', filters.recipient);
-    if (filters.tin) queryParams.append('recipient_tin-num', filters.tin);
+    if (filters.account) queryParams.append('account_number', filters.account);
+    if (filters.recipient) queryParams.append('recipient_number', filters.recipient);
+    if (filters.tin) queryParams.append('recipient_tin-bnum', filters.tin);
     if (filters.phone) {
-        const formattedPhone = formatPhoneNumber(filters.phone);
-        if (validatePhoneNumber(formattedPhone)) {
-            queryParams.append('recipient_phone-num', formattedPhone);
+        if (PhoneNumberUtils.isValid(filters.phone)) {
+            queryParams.append('recipient_phone', PhoneNumberUtils.clean(filters.phone));
         }
     }
     if (filters.legalType) {
@@ -924,55 +1032,6 @@ function buildQueryString(filters) {
     }
 
     return queryParams.toString();
-}
-
-// Применение фильтров
-function applyFilters() {
-    const filters = {
-        dateFrom: document.getElementById('filter-date-from').value,
-        dateTo: document.getElementById('filter-date-to').value,
-        type: document.getElementById('filter-type').value,
-        category: document.getElementById('filter-category').value,
-        amountFrom: document.getElementById('filter-amount-from').value,
-        amountTo: document.getElementById('filter-amount-to').value,
-        status: document.getElementById('filter-status').value,
-        senderBank: document.getElementById('filter-sender-bank').value,
-        recipientBank: document.getElementById('filter-recipient-bank').value,
-        account: document.getElementById('filter-account').value,
-        recipient: document.getElementById('filter-recipient').value,
-        tin: document.getElementById('filter-tin').value,
-        phone: document.getElementById('filter-phone').value,
-        legalType: document.getElementById('filter-legal-type').value
-    };
-
-    const token = localStorage.getItem('authToken');
-    const queryString = buildQueryString(filters);
-    
-    // Выводим строку запроса в консоль
-    console.log('Query string:', queryString);
-
-    fetch(`http://localhost:7070/api/get_transactions?${queryString}`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    })
-        .then(response => response.json())
-        .then(data => {
-            const transactionsList = document.getElementById('transactions-list');
-            transactionsList.innerHTML = '';
-
-            if (data.transactions && Array.isArray(data.transactions)) {
-                data.transactions.forEach(transaction => {
-                    // Используем существующую функцию для отображения транзакций
-                    displayTransaction(transaction);
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка:', error);
-            document.getElementById('transactions-error').textContent = 'Ошибка при загрузке транзакций';
-        });
 }
 
 // Инициализация фильтров
@@ -997,24 +1056,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Добавляем обработчики для полей ввода телефона
     const phoneInputs = document.querySelectorAll('input[type="tel"]');
     phoneInputs.forEach(input => {
-        input.addEventListener('input', function(e) {
-            // Удаляем все нецифровые символы
-            let value = e.target.value.replace(/\D/g, '');
-            // Если номер не начинается с 8, добавляем 8
-            if (value && !value.startsWith('8')) {
-                value = '8' + value;
-            }
-            // Ограничиваем длину до 11 цифр
-            value = value.slice(0, 11);
-            e.target.value = value;
-        });
-
-        input.addEventListener('blur', function(e) {
-            const value = e.target.value;
-            if (value && !validatePhoneNumber(value)) {
-                e.target.value = '';
-            }
-        });
+        PhoneNumberUtils.setupValidation(input);
     });
 });
 
@@ -1477,7 +1519,7 @@ function createIncomeExpenseComparisonChart(data) {
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1
             }, {
-                label: 'Расходы',
+                label: 'Списания',
                 data: data.incomeVsExpense.monthly.expense,
                 backgroundColor: 'rgba(255, 99, 132, 0.7)',
                 borderColor: 'rgba(255, 99, 132, 1)',

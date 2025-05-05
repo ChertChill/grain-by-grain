@@ -18,6 +18,7 @@ public class TransactionFilter {
     public final String greater_identificator = "-gt";
     public final String less_identificator = "-lw";
     public final String num_identificator = "-num";
+    public final String bigint_identificator = "-bnum";
 
     public List<Transaction> getUserTransactions(User user, Map<String, List<String>> filters) throws SQLException {
         StringBuilder query = new StringBuilder("SELECT * FROM transactions WHERE user_id = ?");
@@ -33,6 +34,7 @@ public class TransactionFilter {
 
                 String operator = "=";
                 boolean toInt = false;
+                boolean toBigInt = false;
 
                 //если присутствуют параметры gt/lw/num, то изменяем меняем БД запрос и меняем ключи
                 //нужно для того, чтобы избежать Mismatch у джавы/параметров
@@ -47,11 +49,15 @@ public class TransactionFilter {
                 } else if (key.contains(num_identificator)) {
                     key = key.replace(num_identificator, "");
                     toInt = true;
+                } else if (key.contains(bigint_identificator)) {
+                    key = key.replace(bigint_identificator, "");
+                    toBigInt = true;
                 }
 
                 //изменяем парсинг параметров в зависимости от их типа
                 if (key.contains("transaction_date") || key.contains("created_at"))
                     parameters.add(LocalDateTime.parse(val));
+                else if (toBigInt) parameters.add(Long.parseLong(val));
                 else if (toInt) parameters.add(Integer.parseInt(val));
                 else parameters.add(val);
 

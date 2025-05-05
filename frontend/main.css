@@ -222,12 +222,43 @@ body {
 
 .error-message {
     min-height: 18px;
-    margin: 0 0 12px;
+    margin: 12px 0;
 
     font-size: 14px;
     line-height: 18px;
     color: #FB5884;
 }
+
+.input-error {
+    display: none;
+    color: #ff0000;
+    font-size: 12px;
+    line-height: 120%;
+    margin-top: 4px;
+}
+
+.input-error.active {
+    display: block;
+}
+
+input.error {
+    border-color: #ff0000;
+}
+
+/* Стили для поля ввода телефона */
+input[type="tel"] {
+    border: 1px solid #ccc;
+    padding: 8px;
+}
+
+input[type="tel"]:focus {
+    outline: none;
+    border-color: #4a90e2;
+}
+
+input[type="tel"].error:focus {
+    border-color: #ff0000;
+} 
 
 .auth-submit {
     width: 100%;

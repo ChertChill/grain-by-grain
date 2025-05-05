@@ -93,6 +93,14 @@ public class DataLoader {
         return banks;
     }
 
+    public static List<Category> getCategories() {
+        return categories;
+    }
+
+    public static List<TransactionStatus> getTransactionStatuses() {
+        return transactionStatuses;
+    }
+
     public static void setBanks(List<Bank> banks) {
         DataLoader.banks = banks;
     }

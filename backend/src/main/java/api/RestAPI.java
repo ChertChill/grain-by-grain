@@ -12,6 +12,10 @@ import transactions.DashboardGenerator;
 import transactions.Transaction;
 import transactions.TransactionFilter;
 import transactions.TransactionSummary;
+import database.Bank;
+import database.Category;
+import database.TransactionStatus;
+import database.DataLoader;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -45,6 +49,7 @@ public class RestAPI {
         app.post("/api/register", RestAPI::registrationRequest);
         app.get("/api/check_user", RestAPI::checkUser);
         app.get("/api/get_transactions", RestAPI::getUserTransactions);
+        app.get("/api/reference_data", RestAPI::getReferenceData);
     }
 
     private static String checkHeader(Context ctx) {
@@ -156,6 +161,31 @@ public class RestAPI {
         } catch (Exception e) {
             response.put("success", false);
             response.put("error", "UNEXPECTED ERROR: " + e.getMessage());
+            ctx.status(400).json(response);
+        }
+    }
+
+    private static void getReferenceData(Context ctx) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        try {
+            String token = checkHeader(ctx);
+            User currentUser = JWTHandler.getUser(token);
+
+            // Get banks
+            List<Bank> banks = DataLoader.getBanks();
+            response.put("banks", banks);
+
+            // Get categories
+            List<Category> categories = DataLoader.getCategories();
+            response.put("categories", categories);
+
+            // Get transaction statuses
+            List<TransactionStatus> statuses = DataLoader.getTransactionStatuses();
+            response.put("statuses", statuses);
+
+            ctx.status(200).json(response);
+        } catch (JwtException e) {
+            response.put("error", e.getMessage());
             ctx.status(400).json(response);
         }
     }
