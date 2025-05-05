@@ -5,13 +5,15 @@
 3) триггеры_все.zip  
 файлы с кодом для создания таблиц users_audit, transactions_audit, триггерных функций и самих триггеров  
 4) all_triggers.sql  
-sql-код, собранный в один скрипт  
+sql-код, собранный в один скрипт
+5) CREATE_http_logs.sql
+SQL для создания таблицы http_logs в БД
 
 
 
-
+В базе данных создаем таблицу http_logs.
 В классе RestAPI добавляем член logRepository  
-после старта Javalin выполняем вызов  app.before(...), app.after(...) и app.exception(...) как приведено ниже:  
+После старта Javalin выполняем вызов  **app.before**(...), **app.after**(...) и **app.exception**(...) как приведено ниже:  
 
 ```java
 public class RestAPI {
