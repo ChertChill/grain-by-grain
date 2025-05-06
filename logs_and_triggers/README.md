@@ -7,7 +7,7 @@
 файлы с кодом для создания таблиц users_audit, transactions_audit, триггерных функций и самих триггеров  
 4) all_triggers.sql  
 sql-код, собранный в один скрипт
-5) CREATE_http_logs.sql
+5) CREATE_http_logs.sql  
 SQL для создания таблицы http_logs в БД
 6) Описание для отчёта  
 файл "Аудит БД и Integrationlog" в формате PDF и docx.
