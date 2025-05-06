@@ -18,12 +18,8 @@ SQL для создания таблицы http_logs в БД
 Добавляем член logRepository.  
 После старта Javalin выполняем вызов  **app.before**(...), **app.after**(...) и **app.exception**(...) как приведено ниже:  
     - <details>
-        <summary>Задача 1</summary>
-            Найдите производителей (maker) и модели всех мотоциклов, которые имеют мощность более 150 лошадиных сил, стоят менее 20 тысяч долларов и являются спортивными (тип Sport). Также отсортируйте результаты по мощности в порядке убывания.
-      </details>
-    - <details>
         <summary>RestAPI.java</summary>
-            ```java
+            ```java   
             public class RestAPI {
                 private static final HttpLogRepository logRepository = new HttpLogRepository();
  
@@ -46,8 +42,7 @@ SQL для создания таблицы http_logs в БД
                         ctx.json(Map.of("error", e.getMessage()));
                         ctx.attribute("errorMessage", e.getMessage()); // Для логов
                     });
-            ```
-      </details>
+      </details>```
 
 ## Экспорт логов
 Для экспорта логов http-запросов, изменения таблиц users_audit или transactions_audit следует:  
@@ -59,6 +54,5 @@ SQL для создания таблицы http_logs в БД
         <summary>пример обращения к энд-поинту /api/get_logs</summary>
             ```cmd
             curl.exe -v -X GET http://localhost:7070/api/get_logs -H "Authorization: Bearer [token]" -H "Content-Type: application/json"  -d '{\"tableName\":\"http_logs\"}' -o data.csv 
-            ```
-      </details>  
+      </details>```
 - в параметре запроса -o указывается имя файла, в который будет выгружен запрошенный лог.  
