@@ -60,6 +60,7 @@ registerForm.addEventListener('submit', function (e) {
 const resetButton = document.getElementById('reset-button');
 
 resetButton.addEventListener('click', () => {
+    console.log('Resetting all filters...');
     getUserTransactions();
 });
 
@@ -292,12 +293,21 @@ function displayTransactions(transactions, summary, dashboards) {
             transactionEl.setAttribute('data-transaction-id', transaction.transactionID);
 
             // Format date
-            const date = new Date(Date.UTC(...transaction.transactionDate));
-            const formattedDate = date.toLocaleDateString('ru-RU', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
+            // Преобразуем массив даты в читаемый формат на русском языке
+            const dateArray = transaction.transactionDate;
+            const year = dateArray[0];
+            const month = dateArray[1];
+            const day = dateArray[2];
+            const hours = String(dateArray[3]).padStart(2, '0');
+            const minutes = String(dateArray[4]).padStart(2, '0');
+
+            // Массив названий месяцев в родительном падеже
+            const months = [
+                'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+            ];
+
+            const formattedDate = `${day} ${months[month - 1]} ${year} в ${hours}:${minutes}`;
 
             // Create transaction HTML
             transactionEl.innerHTML = `
@@ -433,6 +443,8 @@ function getUserTransactions() {
 
     const token = localStorage.getItem('authToken');
 
+    console.log('Fetching transactions without filters...');
+
     fetch('http://localhost:7070/api/get_transactions', {
         method: 'GET',
         headers: {
@@ -441,6 +453,11 @@ function getUserTransactions() {
     })
         .then(response => response.json())
         .then(data => {
+            console.log('Received data:', {
+                transactions: data.transactions,
+                summary: data.summary,
+                dashboards: data.dashboards
+            });
             displayTransactions(data.transactions, data.summary, data.dashboards);
             // Устанавливаем период "Ежемесячно"
             const monthlyButton = document.querySelector('.period-button[data-period="monthly"]');
@@ -471,11 +488,15 @@ function applyFilters() {
         legalType: document.getElementById('filter-legal-type').value
     };
 
+    console.log('Applying filters with parameters:', filters);
+
     // Переключаем на таб "Сводка по транзакциям"
     document.getElementById('button-1').checked = true;
 
     const token = localStorage.getItem('authToken');
     const queryString = buildQueryString(filters);
+
+    console.log('Generated query string:', queryString);
 
     fetch(`http://localhost:7070/api/get_transactions?${queryString}`, {
         method: 'GET',
@@ -485,6 +506,11 @@ function applyFilters() {
     })
         .then(response => response.json())
         .then(data => {
+            console.log('Received filtered data:', {
+                transactions: data.transactions,
+                summary: data.summary,
+                dashboards: data.dashboards
+            });
             displayTransactions(data.transactions, data.summary, data.dashboards);
             // Устанавливаем период "Ежемесячно"
             const monthlyButton = document.querySelector('.period-button[data-period="monthly"]');
@@ -532,6 +558,16 @@ transactionNew.addEventListener('click', () => {
     transactionModal.style.display = 'flex';
     loadTransactionFormData();
     transactionForm.reset();
+    
+    // Устанавливаем текущую дату и время по умолчанию
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('transaction-date').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+    
     document.querySelector('#transaction-modal h2').textContent = 'Создать новую транзакцию';
     document.querySelector('#transaction-form-element .auth-submit').textContent = 'Создать транзакцию';
 });
@@ -763,9 +799,15 @@ function editTransaction(transactionId) {
 
 // Утилиты для работы с телефонными номерами
 const PhoneNumberUtils = {
-    // Очистка номера от нецифровых символов
+    // Очистка номера от нецифровых символов, сохраняя знак +
     clean: function(phone) {
-        return phone.replace(/\D/g, '');
+        if (!phone) return '';
+        // Сохраняем знак + если он есть в начале
+        const hasPlus = phone.startsWith('+');
+        // Удаляем все нецифровые символы
+        const cleaned = phone.replace(/\D/g, '');
+        // Возвращаем номер с + если он был в начале
+        return hasPlus ? '+' + cleaned : cleaned;
     },
 
     // Проверка валидности номера
@@ -776,7 +818,7 @@ const PhoneNumberUtils = {
         }
         // Проверяем длину после удаления нецифровых символов
         const cleanPhone = this.clean(phone);
-        return cleanPhone.length === 11;
+        return cleanPhone.length === (cleanPhone.startsWith('+') ? 12 : 11);
     },
 
     // Получение сообщения об ошибке
@@ -851,8 +893,12 @@ transactionForm.addEventListener('submit', function(e) {
         recipientTIN: formData.get('recipientTIN'),
         recipientPhone: PhoneNumberUtils.clean(phoneNumber),
         legalType: parseInt(formData.get('legalType')),
-        comment: formData.get('comment')
+        comment: formData.get('comment'),
+        status: parseInt(formData.get('status')) || 1,
+        transactionDate: formData.get('transactionDate')
     };
+
+    console.log('Sending transaction data to backend:', transactionData);
 
     const token = localStorage.getItem('authToken');
     const url = currentEditingTransactionId 
@@ -863,30 +909,26 @@ transactionForm.addEventListener('submit', function(e) {
     fetch(url, {
         method: method,
         headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(transactionData)
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Закрываем модальное окно
-                transactionModal.style.display = 'none';
-                // Очищаем форму
-                transactionForm.reset();
-                // Сбрасываем ID редактируемой транзакции
-                currentEditingTransactionId = null;
-                // Обновляем список транзакций
-                getUserTransactions();
-            } else {
-                transactionError.textContent = data.error || 'Ошибка при сохранении транзакции';
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка:', error);
-            transactionError.textContent = 'Ошибка при выполнении запроса';
-        });
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Закрываем модальное окно
+            document.getElementById('transaction-modal').style.display = 'none';
+            // Обновляем список транзакций
+            getUserTransactions();
+        } else {
+            transactionError.textContent = data.message || 'Ошибка при сохранении транзакции';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        transactionError.textContent = 'Ошибка при сохранении транзакции';
+    });
 });
 
 // Загрузка данных для фильтров

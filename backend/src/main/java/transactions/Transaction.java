@@ -1,10 +1,12 @@
 package transactions;
 
 import database.*;
+import authorization.User;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 public class Transaction {
     private Long transactionID;
@@ -177,6 +179,34 @@ public class Transaction {
         this.legalType = legalType;
     }
 
+    /**
+     * Создает новую транзакцию из данных запроса
+     * @param requestBody данные запроса
+     * @param currentUser текущий пользователь
+     * @return созданная транзакция
+     * @throws Exception если возникла ошибка при создании транзакции
+     */
+    public static Transaction createFromRequest(Map<String, Object> requestBody, User currentUser) throws Exception {
+        Transaction transaction = new Transaction();
+        
+        transaction.setType(DataLoader.getTransactionTypeByID((Integer) requestBody.get("type")));
+        transaction.setAmount((Integer) requestBody.get("amount"));
+        transaction.setComment((String) requestBody.get("comment"));
+        transaction.setStatus(DataLoader.getTransactionStatusByID((Integer) requestBody.get("status")));
+        transaction.setTransactionDate(LocalDateTime.parse((String) requestBody.get("transactionDate")));
+        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setUserID(currentUser.getId());
+        transaction.setAccountNumber((String) requestBody.get("accountNumber"));
+        transaction.setRecipientNumber((String) requestBody.get("recipientNumber"));
+        transaction.setSenderBank(DataLoader.getBankByID((Integer) requestBody.get("senderBank")));
+        transaction.setRecipientBank(DataLoader.getBankByID((Integer) requestBody.get("recipientBank")));
+        transaction.setRecipientTIN(Long.parseLong(requestBody.get("recipientTIN").toString()));
+        transaction.setRecipientPhone((String) requestBody.get("recipientPhone"));
+        transaction.setCategory(DataLoader.getCategoryByID((Integer) requestBody.get("category")));
+        transaction.setLegalType(DataLoader.getLegalTypeByID((Integer) requestBody.get("legalType")));
+        
+        return transaction;
+    }
 
     public void saveToDatabase() throws SQLException {
         String sql = """
@@ -197,7 +227,7 @@ public class Transaction {
                 category_id,
                 legal_type_id
         ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
         )
         """;
 
@@ -212,9 +242,9 @@ public class Transaction {
             ps.setLong   (idx++, this.getUserID());             // user_id
             ps.setString (idx++, this.getAccountNumber());      // account_number
             ps.setString (idx++, this.getRecipientNumber());    // recipient_number
-            ps.setInt (idx++, this.getSenderBank().getBankID());               // senderBankID
-            ps.setInt (idx++, this.getRecipientBank().getBankID());
-            ps.setLong    (idx++, this.getRecipientTIN());       // recipient_tin
+            ps.setInt    (idx++, this.getSenderBank().getBankID());               // senderBankID
+            ps.setInt    (idx++, this.getRecipientBank().getBankID());
+            ps.setLong   (idx++, this.getRecipientTIN());       // recipient_tin
             ps.setString (idx++, this.getRecipientPhone());              // phone
             ps.setInt    (idx++, this.getCategory().getCategoryID());         // category_id
             ps.setInt    (idx++, this.getLegalType().getLegalTypeID());        // legal_type_id

@@ -50,6 +50,7 @@ public class RestAPI {
         app.get("/api/check_user", RestAPI::checkUser);
         app.get("/api/get_transactions", RestAPI::getUserTransactions);
         app.get("/api/reference_data", RestAPI::getReferenceData);
+        app.post("/api/create_transaction", RestAPI::createTransaction);
     }
 
     private static String checkHeader(Context ctx) {
@@ -165,31 +166,6 @@ public class RestAPI {
         }
     }
 
-    private static void getReferenceData(Context ctx) {
-        Map<String, Object> response = new LinkedHashMap<>();
-        try {
-            String token = checkHeader(ctx);
-            User currentUser = JWTHandler.getUser(token);
-
-            // Get banks
-            List<Bank> banks = DataLoader.getBanks();
-            response.put("banks", banks);
-
-            // Get categories
-            List<Category> categories = DataLoader.getCategories();
-            response.put("categories", categories);
-
-            // Get transaction statuses
-            List<TransactionStatus> statuses = DataLoader.getTransactionStatuses();
-            response.put("statuses", statuses);
-
-            ctx.status(200).json(response);
-        } catch (JwtException e) {
-            response.put("error", e.getMessage());
-            ctx.status(400).json(response);
-        }
-    }
-
     //промежуточные классы, необходимые для парсинга JSONа. Не содержат никакой логики.
     private static class loginData {
         public String email;
@@ -200,6 +176,86 @@ public class RestAPI {
         public String full_name;
         public String email;
         public String password;
+    }
+
+
+    //выдает всю информацию по справочникам
+    private static void getReferenceData(Context ctx) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        try {
+            String token = checkHeader(ctx);
+            User currentUser = JWTHandler.getUser(token);
+            
+            // Get banks
+            List<Bank> banks = DataLoader.getBanks();
+            response.put("banks", banks);
+            
+            // Get categories
+            List<Category> categories = DataLoader.getCategories();
+            response.put("categories", categories);
+            
+            // Get transaction statuses
+            List<TransactionStatus> statuses = DataLoader.getTransactionStatuses();
+            response.put("statuses", statuses);
+            
+            ctx.status(200).json(response);
+        } catch (JwtException e) {
+            response.put("error", e.getMessage());
+            ctx.status(400).json(response);
+        }
+    }
+
+    // Обработка запроса на создание транзакции
+    private static void createTransaction(Context ctx) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        try {
+            String token = checkHeader(ctx);
+            User currentUser = JWTHandler.getUser(token);
+
+            // Parse request body
+            Map<String, Object> requestBody = ctx.bodyAsClass(Map.class);
+            
+            // Validate phone number
+            String phoneNumber = (String) requestBody.get("recipientPhone");
+            if (phoneNumber == null || !phoneNumber.matches("^(\\+7|8)[0-9]{10}$")) {
+                response.put("success", false);
+                response.put("error", "Номер телефона должен начинаться с +7 или 8 и содержать 11 цифр");
+                ctx.status(400).json(response);
+                return;
+            }
+            
+            // Create transaction
+            Transaction transaction;
+            try {
+                transaction = Transaction.createFromRequest(requestBody, currentUser);
+            } catch (Exception e) {
+                response.put("success", false);
+                response.put("error", "Ошибка при создании транзакции: " + e.getMessage());
+                response.put("details", "Проверьте правильность всех полей формы");
+                ctx.status(400).json(response);
+                return;
+            }
+
+            // Save to database
+            try {
+                transaction.saveToDatabase();
+            } catch (SQLException e) {
+                response.put("success", false);
+                response.put("error", "Ошибка при сохранении в базу данных: " + e.getMessage());
+                response.put("details", "Проверьте правильность всех полей формы");
+                ctx.status(400).json(response);
+                return;
+            }
+
+            response.put("success", true);
+            response.put("error", "Transaction created successfully");
+            ctx.status(201).json(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", "Неожиданная ошибка: " + e.getMessage());
+            response.put("details", "Проверьте правильность всех полей формы");
+            ctx.status(400).json(response);
+        }
     }
 
 }
