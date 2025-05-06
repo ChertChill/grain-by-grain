@@ -20,7 +20,6 @@ body {
 }
 
 
-
 /* Шрифты */
 
 .center {
@@ -70,6 +69,17 @@ body {
         line-height: 120%;
     }
 
+    #header-menu a {
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 120%;
+        color: #1E1E1E;
+        text-decoration: none;
+    }
+
+    #header-menu a:hover {
+        color: #577BFF;
+    }
 
     
     #header-account {
@@ -583,6 +593,13 @@ input[type="tel"].error:focus {
         .filter-button:hover {
             box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.2);
             background: #577BFF;
+        }
+
+        .filter-button.disabled {
+            background: #E2E2E2;
+            color: #999;
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
 

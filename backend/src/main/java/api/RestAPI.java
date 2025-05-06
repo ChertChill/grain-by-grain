@@ -51,6 +51,9 @@ public class RestAPI {
         app.get("/api/get_transactions", RestAPI::getUserTransactions);
         app.get("/api/reference_data", RestAPI::getReferenceData);
         app.post("/api/create_transaction", RestAPI::createTransaction);
+        app.put("/api/update_transaction/{id}", RestAPI::updateTransaction);
+        app.put("/api/confirm_transaction/{id}", RestAPI::confirmTransaction);
+        app.put("/api/delete_transaction/{id}", RestAPI::deleteTransaction);
     }
 
     private static String checkHeader(Context ctx) {
@@ -248,12 +251,155 @@ public class RestAPI {
             }
 
             response.put("success", true);
-            response.put("error", "Transaction created successfully");
+            response.put("message", "Transaction created successfully");
             ctx.status(201).json(response);
         } catch (Exception e) {
             response.put("success", false);
             response.put("error", "Неожиданная ошибка: " + e.getMessage());
             response.put("details", "Проверьте правильность всех полей формы");
+            ctx.status(400).json(response);
+        }
+    }
+
+    // Обработка запроса на обновление транзакции
+    private static void updateTransaction(Context ctx) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        try {
+            String token = checkHeader(ctx);
+            User currentUser = JWTHandler.getUser(token);
+
+            // Get transaction ID from path parameter
+            String transactionId = ctx.pathParam("id");
+            if (transactionId == null || transactionId.isEmpty()) {
+                response.put("success", false);
+                response.put("error", "ID транзакции не указан");
+                ctx.status(400).json(response);
+                return;
+            }
+
+            // Parse request body
+            Map<String, Object> requestBody = ctx.bodyAsClass(Map.class);
+            
+            // Validate phone number
+            String phoneNumber = (String) requestBody.get("recipientPhone");
+            if (phoneNumber == null || !phoneNumber.matches("^(\\+7|8)[0-9]{10}$")) {
+                response.put("success", false);
+                response.put("error", "Номер телефона должен начинаться с +7 или 8 и содержать 11 цифр");
+                ctx.status(400).json(response);
+                return;
+            }
+
+            // Update transaction
+            try {
+                Transaction transaction = Transaction.updateFromRequest(transactionId, requestBody, currentUser);
+                transaction.updateInDatabase();
+                
+                response.put("success", true);
+                response.put("message", "Transaction updated successfully");
+                ctx.status(200).json(response);
+            } catch (SQLException e) {
+                response.put("success", false);
+                response.put("error", "Ошибка при обновлении транзакции: " + e.getMessage());
+                response.put("details", "Проверьте правильность всех полей формы");
+                ctx.status(400).json(response);
+            } catch (Exception e) {
+                response.put("success", false);
+                response.put("error", "Ошибка при обновлении транзакции: " + e.getMessage());
+                response.put("details", "Проверьте правильность всех полей формы");
+                ctx.status(400).json(response);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", "Неожиданная ошибка: " + e.getMessage());
+            response.put("details", "Проверьте правильность всех полей формы");
+            ctx.status(400).json(response);
+        }
+    }
+
+    // Обработка запроса на подтверждение транзакции
+    private static void confirmTransaction(Context ctx) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        try {
+            String token = checkHeader(ctx);
+            User currentUser = JWTHandler.getUser(token);
+
+            // Get transaction ID from path parameter
+            String transactionId = ctx.pathParam("id");
+            if (transactionId == null || transactionId.isEmpty()) {
+                response.put("success", false);
+                response.put("error", "ID транзакции не указан");
+                ctx.status(400).json(response);
+                return;
+            }
+
+            // Update transaction status to "Подтвержденная" (status ID 2)
+            try {
+                Transaction transaction = Transaction.getById(transactionId);
+                if (transaction == null) {
+                    response.put("success", false);
+                    response.put("error", "Транзакция не найдена");
+                    ctx.status(404).json(response);
+                    return;
+                }
+
+                transaction.setStatus(new TransactionStatus(2, "Подтвержденная", false));
+                transaction.updateInDatabase();
+                
+                response.put("success", true);
+                response.put("message", "Transaction confirmed successfully");
+                ctx.status(200).json(response);
+            } catch (SQLException e) {
+                response.put("success", false);
+                response.put("error", "Ошибка при подтверждении транзакции: " + e.getMessage());
+                ctx.status(400).json(response);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", "Неожиданная ошибка: " + e.getMessage());
+            ctx.status(400).json(response);
+        }
+    }
+
+    // Обработка запроса на удаление транзакции
+    private static void deleteTransaction(Context ctx) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        try {
+            String token = checkHeader(ctx);
+            User currentUser = JWTHandler.getUser(token);
+
+            // Get transaction ID from path parameter
+            String transactionId = ctx.pathParam("id");
+            if (transactionId == null || transactionId.isEmpty()) {
+                response.put("success", false);
+                response.put("error", "ID транзакции не указан");
+                ctx.status(400).json(response);
+                return;
+            }
+
+            // Update transaction status to "Платеж удален" (status ID 6)
+            try {
+                Transaction transaction = Transaction.getById(transactionId);
+                if (transaction == null) {
+                    response.put("success", false);
+                    response.put("error", "Транзакция не найдена");
+                    ctx.status(404).json(response);
+                    return;
+                }
+
+                transaction.setStatus(new TransactionStatus(6, "Платеж удален", true));
+                transaction.updateInDatabase();
+                
+                response.put("success", true);
+                response.put("message", "Transaction deleted successfully");
+                ctx.status(200).json(response);
+            } catch (SQLException e) {
+                response.put("success", false);
+                response.put("error", "Ошибка при удалении транзакции: " + e.getMessage());
+                ctx.status(400).json(response);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", "Неожиданная ошибка: " + e.getMessage());
             ctx.status(400).json(response);
         }
     }

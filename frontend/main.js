@@ -416,6 +416,22 @@ function displayTransactions(transactions, summary, dashboards) {
                 });
             }
 
+            // Add click handler for confirm button
+            const confirmButton = transactionEl.querySelector('#ti-apply');
+            if (confirmButton) {
+                confirmButton.addEventListener('click', () => {
+                    confirmTransaction(transaction.transactionID);
+                });
+            }
+
+            // Add click handler for delete button
+            const deleteButton = transactionEl.querySelector('#ti-delete');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', () => {
+                    deleteTransaction(transaction.transactionID);
+                });
+            }
+
             transactionsList.appendChild(transactionEl);
         });
 
@@ -690,8 +706,49 @@ function populateTransactionFormData(data) {
     });
 }
 
+// Функция для получения и форматирования даты из карточки транзакции
+function getFormattedTransactionDate(transactionElement) {
+    // Получаем дату из карточки
+    let dateText = '';
+    const infoGroups = transactionElement.querySelectorAll('.ti-info-group');
+    for (const group of infoGroups) {
+        const label = group.querySelector('.ti-info-label');
+        if (label && label.textContent.trim() === 'Дата') {
+            const value = group.querySelector('.ti-info-value');
+            if (value) {
+                dateText = value.textContent.trim();
+                break;
+            }
+        }
+    }
+
+    // Преобразуем дату из формата "1 июня 2024 в 14:30" в формат "2024-06-01T14:30"
+    try {
+        if (dateText) {
+            const dateRegex = /(\d{1,2}) (\S+) (\d{4}) в (\d{2}):(\d{2})/;
+            const months = [
+                'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+            ];
+            const match = dateText.match(dateRegex);
+            if (match) {
+                const day = match[1].padStart(2, '0');
+                const month = (months.indexOf(match[2]) + 1).toString().padStart(2, '0');
+                const year = match[3];
+                const hours = match[4];
+                const minutes = match[5];
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+        }
+    } catch (err) {
+        return null;
+    }
+    return null;
+}
+
 // Функция для редактирования транзакции
 function editTransaction(transactionId) {
+    console.log('Editing transaction with ID:', transactionId);
     currentEditingTransactionId = transactionId;
     transactionModal.style.display = 'flex';
     document.querySelector('#transaction-modal h2').textContent = 'Редактировать транзакцию';
@@ -700,6 +757,7 @@ function editTransaction(transactionId) {
     // Находим элемент транзакции в DOM по точному атрибуту
     const transactionElement = document.querySelector(`.transaction-item[data-transaction-id="${transactionId}"]`);
     if (!transactionElement) {
+        console.error('Transaction element not found in DOM');
         document.getElementById('transaction-error').textContent = 'Ошибка: транзакция не найдена';
         return;
     }
@@ -712,6 +770,17 @@ function editTransaction(transactionId) {
     const statusElement = transactionElement.querySelector('.ti-status');
     const detailsContent = transactionElement.querySelector('.ti-details-content');
 
+    // Получаем отформатированную дату
+    const formattedDate = getFormattedTransactionDate(transactionElement);
+    console.log('Retrieved transaction data:', {
+        type: typeElement?.textContent,
+        amount: amountElement?.textContent,
+        category: categoryElement?.textContent,
+        comment: commentElement?.textContent,
+        status: statusElement?.textContent,
+        date: formattedDate
+    });
+
     // Загружаем данные для селектов
     loadTransactionFormData()
         .then(() => {
@@ -719,6 +788,11 @@ function editTransaction(transactionId) {
             document.getElementById('transaction-type').value = typeElement.classList.contains('income') ? '1' : '2';
             document.getElementById('transaction-amount').value = parseFloat(amountElement.textContent.replace(/[^\d.-]/g, ''));
             document.getElementById('transaction-comment').value = commentElement.textContent;
+
+            // Устанавливаем дату в поле формы
+            if (formattedDate) {
+                document.getElementById('transaction-date').value = formattedDate;
+            }
 
             // Находим нужные опции в селектах по тексту и устанавливаем значения
             const categorySelect = document.getElementById('transaction-category');
@@ -790,7 +864,7 @@ function editTransaction(transactionId) {
             }
         })
         .catch(error => {
-            console.error('Ошибка:', error);
+            console.error('Error loading form data:', error);
             document.getElementById('transaction-error').textContent = 'Ошибка при загрузке данных формы';
         });
 }
@@ -1819,4 +1893,56 @@ function createIncomeCategoriesChart(data) {
     });
 
     return chart;
+}
+
+// Функция для подтверждения транзакции
+function confirmTransaction(transactionId) {
+    console.log('Confirming transaction with ID:', transactionId);
+    const token = localStorage.getItem('authToken');
+    
+    fetch(`http://localhost:7070/api/confirm_transaction/${transactionId}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Transaction confirmed successfully:', transactionId);
+            // Обновляем список транзакций
+            getUserTransactions();
+        } else {
+            console.error('Error confirming transaction:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error during transaction confirmation:', error);
+    });
+}
+
+// Функция для удаления транзакции
+function deleteTransaction(transactionId) {
+    console.log('Deleting transaction with ID:', transactionId);
+    const token = localStorage.getItem('authToken');
+    
+    fetch(`http://localhost:7070/api/delete_transaction/${transactionId}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Transaction deleted successfully:', transactionId);
+            // Обновляем список транзакций
+            getUserTransactions();
+        } else {
+            console.error('Error deleting transaction:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error during transaction deletion:', error);
+    });
 }
