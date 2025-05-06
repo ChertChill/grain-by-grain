@@ -16,6 +16,13 @@ SQL для создания таблицы http_logs в БД
 Для логирования изменений в БД создаем таблицы users_audit, transactions_audit, триггерные функций и сами триггеры (all_triggers.sql).  
 В классе RestAPI подключаем пакет logging (logging.zip).  
 Добавляем член logRepository.  
+Добавляем внутренний класс LogData для обработки параметра json
+```java
+public static class LogData {
+        public String tableName;
+    }
+```
+Добавляем эндпоинт /api/get_logs и обработчик RestAPI::getLogs (см. файл RestAPI.java).  
 После старта Javalin выполняем вызов  **app.before**(...), **app.after**(...) и **app.exception**(...) как приведено ниже:  
 ```java   
 public class RestAPI {
@@ -40,6 +47,9 @@ private static final HttpLogRepository logRepository = new HttpLogRepository();
                         ctx.json(Map.of("error", e.getMessage()));
                         ctx.attribute("errorMessage", e.getMessage()); // Для логов
                     });  
+                    app.get("/api/get_logs", RestAPI::getLogs);  
+                }  
+
 ```
 
 ## Экспорт логов
