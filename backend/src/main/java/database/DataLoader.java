@@ -40,15 +40,22 @@ public class DataLoader {
     }
 
     private static List<Category> loadCategories() throws SQLException {
-        String query = "select * from categories";
+        String query = "SELECT * FROM categories";
         List<Category> categories = new ArrayList<>();
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            ResultSet rs = stmt.executeQuery();
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
             while (rs.next()) {
-                categories.add(new Category(rs.getInt("category_id"), rs.getString("name")));
+                categories.add(new Category(
+                        rs.getInt("category_id"),
+                        rs.getString("name")
+                ));
             }
-            return categories;
         }
+
+        return categories;
     }
 
     private static List<LegalType> loadLegalTypes() throws SQLException {
@@ -64,29 +71,44 @@ public class DataLoader {
     }
 
     private static List<TransactionStatus> loadTransactionStatuses() throws SQLException {
-        String query = "select * from transaction_status";
+        String query = "SELECT * FROM transaction_status";
         List<TransactionStatus> transactionStatuses = new ArrayList<>();
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            ResultSet rs = stmt.executeQuery();
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
             while (rs.next()) {
-                transactionStatuses.add(new TransactionStatus(rs.getInt("status_id"),
-                        rs.getString("name"), rs.getBoolean("is_final")));
+                transactionStatuses.add(new TransactionStatus(
+                        rs.getInt("status_id"),
+                        rs.getString("name"),
+                        rs.getBoolean("is_final")
+                ));
             }
-            return transactionStatuses;
         }
+
+        return transactionStatuses;
     }
 
     private static List<Bank> loadBanks() throws SQLException {
-        String query = "select * from banks";
-        List<Bank> banks = new ArrayList<Bank>();
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            ResultSet rs = stmt.executeQuery();
+        String query = "SELECT * FROM banks";
+        List<Bank> banks = new ArrayList<>();
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
             while (rs.next()) {
-                banks.add(new Bank(rs.getInt("bank_id"), rs.getString("name"),
-                        rs.getString("bic"), rs.getString("address")));
+                banks.add(new Bank(
+                        rs.getInt("bank_id"),
+                        rs.getString("name"),
+                        rs.getString("bic"),
+                        rs.getString("address")
+                ));
             }
-            return banks;
         }
+
+        return banks;
     }
 
     public static List<Bank> getBanks() {

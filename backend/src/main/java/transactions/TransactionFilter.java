@@ -5,6 +5,7 @@ import database.Bank;
 import database.DataLoader;
 import database.DatabaseConnection;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -65,15 +66,21 @@ public class TransactionFilter {
             }
         }
 
-        try (PreparedStatement stmt = DatabaseConnection.getConnection().prepareStatement(query.toString())) {
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query.toString())) {
+
+            // 1) bind all parameters first
             for (int i = 0; i < parameters.size(); i++) {
-                stmt.setObject(i + 1, parameters.get(i)); // Bind values safely
+                stmt.setObject(i + 1, parameters.get(i));
             }
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                transactions.add(mapResultSetToTransaction(rs));
+
+            // 2) then execute
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    transactions.add(mapResultSetToTransaction(rs));
+                }
+                return transactions;
             }
-            return transactions;
         }
     }
 

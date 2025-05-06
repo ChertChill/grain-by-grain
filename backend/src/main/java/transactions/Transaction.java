@@ -3,6 +3,7 @@ package transactions;
 import database.*;
 import authorization.User;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -232,7 +233,8 @@ public class Transaction {
         )
         """;
 
-        try (PreparedStatement ps = DatabaseConnection.getConnection().prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             int idx = 1;
             ps.setInt    (idx++, this.getType().getTypeID());             // type_id
             ps.setInt    (idx++, this.getAmount());             // amount
@@ -307,7 +309,8 @@ public class Transaction {
             WHERE transaction_id = ? AND user_id = ?
         """;
 
-        try (PreparedStatement ps = DatabaseConnection.getConnection().prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             int idx = 1;
             ps.setInt    (idx++, this.getType().getTypeID());             // type_id
             ps.setInt    (idx++, this.getAmount());                       // amount
@@ -340,8 +343,9 @@ public class Transaction {
      */
     public static Transaction getById(String transactionId) throws SQLException {
         String sql = "SELECT * FROM transactions WHERE transaction_id = ?";
-        
-        try (PreparedStatement ps = DatabaseConnection.getConnection().prepareStatement(sql)) {
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, Long.parseLong(transactionId));
             
             try (ResultSet rs = ps.executeQuery()) {
