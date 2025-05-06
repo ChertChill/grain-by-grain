@@ -1,5 +1,9 @@
 package api;
 
+// Классы для создания и экспорта логов HTTP-запросов
+import logging.ExportCSV;
+import logging.HttpLogRepository;
+import logging.HttpLoggingFilter;
 
 public class RestAPI {
 
@@ -20,10 +24,8 @@ public class RestAPI {
             });
         });
 
-
         int port = 7070;
         app.start(port);
-
 
         // настраиваем логирование запросов
         app.before(new HttpLoggingFilter(logRepository));
@@ -42,7 +44,13 @@ public class RestAPI {
         app.get("/api/check_user", RestAPI::checkUser);
         app.get("/api/get_transactions", RestAPI::getUserTransactions);
 
+        // Запрос для получения логов. В параметре tableName передать имя таблицы {http_logs, users_audit, transactions_audit}
+        app.get("/api/get_logs", RestAPI::getLogs);
     }
 
+    // Добавлен класс LogData для обработки значения параметра запроса в json-е
+    public static class LogData {
+        public String tableName;
+    }
 
 }
