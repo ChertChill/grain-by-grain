@@ -52,7 +52,7 @@ CREATE TABLE transactions (
     account_number VARCHAR(50) NOT NULL,                             
     recipient_number VARCHAR(50) NOT NULL,                           
     legal_type_id INT NOT NULL REFERENCES legal_types(legal_type_id),
-    transaction_date DATE NOT NULL,                                             
+    transaction_date TIMESTAMP NOT NULL,                                             
     recipient_tin BIGINT NOT NULL CHECK (recipient_tin >= 10000000000 AND recipient_tin <= 99999999999), 
     category_id INT REFERENCES categories(category_id),              
     recipient_phone VARCHAR(16) CHECK (recipient_phone ~ '^(\+7|8)[0-9]{10}$')           
