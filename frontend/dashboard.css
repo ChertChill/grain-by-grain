@@ -1,4 +1,4 @@
-/* Dashboard Styles */
+/* Стили дашборда */
 
 :root {
     --primary-color: #1E1E1E;
@@ -12,7 +12,7 @@
     --shadow-color: rgba(0, 0, 0, 0.1);
 }
 
-/* Dashboard Container */
+/* Контейнер дашборда */
 #dashboard-container, #account-summary-container {
     width: 100%;
     padding: 20px;
@@ -24,7 +24,7 @@
     overflow: hidden;
 }
 
-/* Dashboard Grid */
+/* Сетка дашборда */
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -32,7 +32,7 @@
     width: 100%;
 }
 
-/* Dashboard Card */
+/* Карточка дашборда */
 .dashboard-card {
     background-color: white;
     border-radius: 8px;
@@ -73,17 +73,17 @@
     overflow: hidden;
 }
 
-/* Full Width Card */
+/* Карточка на всю ширину */
 .dashboard-card.full-width {
     grid-column: span 2;
 }
 
-/* Half Width Card */
+/* Карточка на половину ширины */
 .dashboard-card.half-width {
     grid-column: span 1;
 }
 
-/* Блок Сводка */
+/* Блок сводки */
 .summary-title {
     font-size: 18px;
     font-weight: bold;
@@ -93,7 +93,7 @@
     border-bottom: 2px solid var(--accent-color);
 }
 
-/* Dashboard Summary */
+/* Сводка дашборда */
 .dashboard-summary {
     display: flex;
     justify-content: space-between;
@@ -133,7 +133,7 @@
     color: var(--primary-color);
 }
 
-/* Chart Container */
+/* Контейнер графика */
 .chart-container {
     width: 100%;
     height: 100%;
@@ -141,7 +141,7 @@
     overflow: hidden;
 }
 
-/* Period Selector */
+/* Выбор периода */
 .period-selector {
     display: flex;
     gap: 10px;

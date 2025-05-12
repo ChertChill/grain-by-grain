@@ -469,24 +469,52 @@ function getUserTransactions() {
     })
         .then(response => response.json())
         .then(data => {
-            console.log('Received data:', {
-                transactions: data.transactions,
-                summary: data.summary,
-                dashboards: data.dashboards
-            });
+            console.log('Received data:', data);
+
+            // Проверяем наличие данных и их валидность
+            if (!data || 
+                !data.transactions || 
+                !Array.isArray(data.transactions) || 
+                data.transactions.some(t => t === undefined)) {
+                
+                // Очищаем список транзакций
+                const transactionsList = document.getElementById('transactions-list');
+                if (transactionsList) {
+                    transactionsList.innerHTML = '';
+                }
+
+                // Показываем сообщение об ошибке
+                if (transactionsError) {
+                    transactionsError.textContent = 'Транзакции не найдены';
+                }
+
+                // Очищаем сводку и дашборд
+                clearSummaryAndDashboard();
+                return;
+            }
+
+            // Если данные валидны, отображаем их
             displayTransactions(data.transactions, data.summary, data.dashboards);
+            
             // Устанавливаем период "Ежемесячно"
             const monthlyButton = document.querySelector('.period-button[data-period="monthly"]');
-            if (monthlyButton) monthlyButton.click();
+            if (monthlyButton) {
+                monthlyButton.click();
+            }
         })
         .catch(error => {
             console.error('Ошибка:', error);
-            transactionsError.textContent = error.message || 'Ошибка при загрузке транзакций';
+            if (transactionsError) {
+                transactionsError.textContent = 'Ошибка при загрузке транзакций';
+            }
+            // Очищаем сводку и дашборд при ошибке
+            clearSummaryAndDashboard();
         });
 }
 
 // Обновляем функцию applyFilters
 function applyFilters() {
+    // Проверяем валидность полей фильтрации
     const filters = {
         dateFrom: document.getElementById('filter-date-from').value,
         dateTo: document.getElementById('filter-date-to').value,
@@ -503,6 +531,93 @@ function applyFilters() {
         phone: document.getElementById('filter-phone').value,
         legalType: document.getElementById('filter-legal-type').value
     };
+
+    // Проверяем валидность полей, если они заполнены
+    let hasError = false;
+
+    // Проверка телефона
+    if (filters.phone) {
+        const phoneInput = document.getElementById('filter-phone');
+        if (!ValidationUtils.phone.isValid(filters.phone)) {
+            const errorElement = phoneInput.parentNode.querySelector('.input-error');
+            if (errorElement) {
+                errorElement.textContent = ValidationUtils.phone.getErrorMessage();
+                errorElement.classList.add('active');
+                phoneInput.classList.add('error');
+            }
+            hasError = true;
+        } else {
+            phoneInput.classList.remove('error');
+            const errorElement = phoneInput.parentNode.querySelector('.input-error');
+            if (errorElement) {
+                errorElement.classList.remove('active');
+            }
+        }
+    }
+
+    // Проверка ИНН
+    if (filters.tin) {
+        const tinInput = document.getElementById('filter-tin');
+        if (!ValidationUtils.tin.isValid(filters.tin)) {
+            const errorElement = tinInput.parentNode.querySelector('.input-error');
+            if (errorElement) {
+                errorElement.textContent = ValidationUtils.tin.getErrorMessage();
+                errorElement.classList.add('active');
+                tinInput.classList.add('error');
+            }
+            hasError = true;
+        } else {
+            tinInput.classList.remove('error');
+            const errorElement = tinInput.parentNode.querySelector('.input-error');
+            if (errorElement) {
+                errorElement.classList.remove('active');
+            }
+        }
+    }
+
+    // Проверка счета отправителя
+    if (filters.account) {
+        const accountInput = document.getElementById('filter-account');
+        if (!ValidationUtils.account.isValid(filters.account)) {
+            const errorElement = accountInput.parentNode.querySelector('.input-error');
+            if (errorElement) {
+                errorElement.textContent = ValidationUtils.account.getErrorMessage();
+                errorElement.classList.add('active');
+                accountInput.classList.add('error');
+            }
+            hasError = true;
+        } else {
+            accountInput.classList.remove('error');
+            const errorElement = accountInput.parentNode.querySelector('.input-error');
+            if (errorElement) {
+                errorElement.classList.remove('active');
+            }
+        }
+    }
+
+    // Проверка счета получателя
+    if (filters.recipient) {
+        const recipientInput = document.getElementById('filter-recipient');
+        if (!ValidationUtils.account.isValid(filters.recipient)) {
+            const errorElement = recipientInput.parentNode.querySelector('.input-error');
+            if (errorElement) {
+                errorElement.textContent = ValidationUtils.account.getErrorMessage();
+                errorElement.classList.add('active');
+                recipientInput.classList.add('error');
+            }
+            hasError = true;
+        } else {
+            recipientInput.classList.remove('error');
+            const errorElement = recipientInput.parentNode.querySelector('.input-error');
+            if (errorElement) {
+                errorElement.classList.remove('active');
+            }
+        }
+    }
+
+    if (hasError) {
+        return;
+    }
 
     console.log('Applying filters with parameters:', filters);
 
@@ -522,12 +637,34 @@ function applyFilters() {
     })
         .then(response => response.json())
         .then(data => {
-            console.log('Received filtered data:', {
-                transactions: data.transactions,
-                summary: data.summary,
-                dashboards: data.dashboards
-            });
+            console.log('Received filtered data:', data);
+
+            // Проверяем наличие данных и их валидность
+            if (!data || 
+                !data.transactions || 
+                !Array.isArray(data.transactions) || 
+                data.transactions.some(t => t === undefined)) {
+                
+                // Очищаем список транзакций
+                const transactionsList = document.getElementById('transactions-list');
+                if (transactionsList) {
+                    transactionsList.innerHTML = '';
+                }
+
+                // Показываем сообщение об ошибке
+                const transactionsError = document.getElementById('transactions-error');
+                if (transactionsError) {
+                    transactionsError.textContent = 'Транзакции не найдены';
+                }
+
+                // Очищаем сводку и дашборд
+                clearSummaryAndDashboard();
+                return;
+            }
+
+            // Если данные валидны, отображаем их
             displayTransactions(data.transactions, data.summary, data.dashboards);
+            
             // Устанавливаем период "Ежемесячно"
             const monthlyButton = document.querySelector('.period-button[data-period="monthly"]');
             if (monthlyButton) {
@@ -536,11 +673,16 @@ function applyFilters() {
         })
         .catch(error => {
             console.error('Ошибка:', error);
-            document.getElementById('transactions-error').textContent = 'Ошибка при загрузке транзакций';
+            const transactionsError = document.getElementById('transactions-error');
+            if (transactionsError) {
+                transactionsError.textContent = 'Ошибка при загрузке транзакций';
+            }
+            // Очищаем сводку и дашборд при ошибке
+            clearSummaryAndDashboard();
         });
 }
 
-// Helper function to get status class
+// Вспомогательная функция для получения класса статуса
 function getStatusClass(status) {
     const statusMap = {
         'Новая': 'new',
@@ -574,6 +716,20 @@ transactionNew.addEventListener('click', () => {
     transactionModal.style.display = 'flex';
     loadTransactionFormData();
     transactionForm.reset();
+    
+    // Сбрасываем состояние валидации всех полей
+    const inputs = transactionForm.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.classList.remove('error');
+        const errorElement = input.parentNode.querySelector('.input-error');
+        if (errorElement) {
+            errorElement.classList.remove('active');
+            errorElement.textContent = '';
+        }
+    });
+    
+    // Очищаем сообщение об ошибке формы
+    document.getElementById('transaction-error').textContent = '';
     
     // Устанавливаем текущую дату и время по умолчанию
     const now = new Date();
@@ -754,6 +910,20 @@ function editTransaction(transactionId) {
     document.querySelector('#transaction-modal h2').textContent = 'Редактировать транзакцию';
     document.querySelector('#transaction-form-element .auth-submit').textContent = 'Сохранить изменения';
 
+    // Сбрасываем состояние валидации всех полей
+    const inputs = transactionForm.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.classList.remove('error');
+        const errorElement = input.parentNode.querySelector('.input-error');
+        if (errorElement) {
+            errorElement.classList.remove('active');
+            errorElement.textContent = '';
+        }
+    });
+    
+    // Очищаем сообщение об ошибке формы
+    document.getElementById('transaction-error').textContent = '';
+
     // Находим элемент транзакции в DOM по точному атрибуту
     const transactionElement = document.querySelector(`.transaction-item[data-transaction-id="${transactionId}"]`);
     if (!transactionElement) {
@@ -839,16 +1009,44 @@ function editTransaction(transactionId) {
                             }
                             break;
                         case 'Счет списания':
-                            document.getElementById('transaction-account').value = value;
+                            const accountInput = document.getElementById('transaction-account');
+                            accountInput.value = value;
+                            // Добавляем валидацию для счета отправителя
+                            const validatedAccountInput = ValidationUtils.setupValidation(accountInput, 'account');
+                            if (validatedAccountInput !== accountInput) {
+                                // Обновляем ссылки на элементы в DOM
+                                accountInput = validatedAccountInput;
+                            }
                             break;
                         case 'Счет получателя':
-                            document.getElementById('transaction-recipient').value = value;
+                            const recipientInput = document.getElementById('transaction-recipient');
+                            recipientInput.value = value;
+                            // Добавляем валидацию для счета получателя
+                            const validatedRecipientInput = ValidationUtils.setupValidation(recipientInput, 'account');
+                            if (validatedRecipientInput !== recipientInput) {
+                                // Обновляем ссылки на элементы в DOM
+                                recipientInput = validatedRecipientInput;
+                            }
                             break;
                         case 'ИНН получателя':
-                            document.getElementById('transaction-tin').value = value;
+                            const tinInput = document.getElementById('transaction-tin');
+                            tinInput.value = value;
+                            // Добавляем валидацию для ИНН
+                            const validatedTinInput = ValidationUtils.setupValidation(tinInput, 'tin');
+                            if (validatedTinInput !== tinInput) {
+                                // Обновляем ссылки на элементы в DOM
+                                tinInput = validatedTinInput;
+                            }
                             break;
                         case 'Телефон получателя':
-                            document.getElementById('transaction-phone').value = value;
+                            const phoneInput = document.getElementById('transaction-phone');
+                            phoneInput.value = value;
+                            // Добавляем валидацию для телефона
+                            const validatedPhoneInput = ValidationUtils.setupValidation(phoneInput, 'phone');
+                            if (validatedPhoneInput !== phoneInput) {
+                                // Обновляем ссылки на элементы в DOM
+                                phoneInput = validatedPhoneInput;
+                            }
                             break;
                         case 'Тип лица':
                             const legalTypeSelect = document.getElementById('transaction-legal-type');
@@ -871,46 +1069,102 @@ function editTransaction(transactionId) {
 
 
 
-// Утилиты для работы с телефонными номерами
-const PhoneNumberUtils = {
-    // Очистка номера от нецифровых символов, сохраняя знак +
-    clean: function(phone) {
-        if (!phone) return '';
-        // Сохраняем знак + если он есть в начале
-        const hasPlus = phone.startsWith('+');
-        // Удаляем все нецифровые символы
-        const cleaned = phone.replace(/\D/g, '');
-        // Возвращаем номер с + если он был в начале
-        return hasPlus ? '+' + cleaned : cleaned;
-    },
+// Утилиты для валидации полей
+const ValidationUtils = {
+    // Утилиты для работы с телефонными номерами
+    phone: {
+        // Очистка номера от нецифровых символов, сохраняя знак +
+        clean: function(phone) {
+            if (!phone) return '';
+            // Сохраняем знак + если он есть в начале
+            const hasPlus = phone.startsWith('+');
+            // Удаляем все нецифровые символы
+            const cleaned = phone.replace(/\D/g, '');
+            // Возвращаем номер с + если он был в начале
+            return hasPlus ? '+' + cleaned : cleaned;
+        },
 
-    // Проверка валидности номера
-    isValid: function(phone) {
-        // Проверяем, что номер начинается с 8 или +7
-        if (!(phone.startsWith('8') || phone.startsWith('+7'))) {
-            return false;
+        // Проверка валидности номера
+        isValid: function(phone) {
+            // Проверяем, что номер начинается с 8 или +7
+            if (!(phone.startsWith('8') || phone.startsWith('+7'))) {
+                return false;
+            }
+            // Проверяем длину после удаления нецифровых символов
+            const cleanPhone = this.clean(phone);
+            return cleanPhone.length === (cleanPhone.startsWith('+') ? 12 : 11);
+        },
+
+        // Получение сообщения об ошибке
+        getErrorMessage: function() {
+            return 'Номер телефона должен начинаться с 8 или +7 и содержать 11 цифр';
         }
-        // Проверяем длину после удаления нецифровых символов
-        const cleanPhone = this.clean(phone);
-        return cleanPhone.length === (cleanPhone.startsWith('+') ? 12 : 11);
     },
 
-    // Получение сообщения об ошибке
-    getErrorMessage: function() {
-        return 'Номер телефона должен начинаться с 8 или +7 и содержать 11 цифр';
+    // Утилиты для работы с ИНН
+    tin: {
+        // Очистка ИНН от нецифровых символов
+        clean: function(tin) {
+            if (!tin) return '';
+            return tin.replace(/\D/g, '');
+        },
+
+        // Проверка валидности ИНН
+        isValid: function(tin) {
+            const cleanTin = this.clean(tin);
+            return cleanTin.length === 11;
+        },
+
+        // Получение сообщения об ошибке
+        getErrorMessage: function() {
+            return 'ИНН должен содержать 11 цифр';
+        }
     },
 
-    // Установка валидации для поля ввода
-    setupValidation: function(input) {
-        // Создаем элемент для отображения ошибки
-        const errorElement = document.createElement('div');
-        errorElement.className = 'input-error';
-        input.parentNode.appendChild(errorElement);
+    // Утилиты для работы с номерами счетов
+    account: {
+        // Очистка номера счета от нецифровых символов
+        clean: function(account) {
+            if (!account) return '';
+            return account.replace(/\D/g, '');
+        },
+
+        // Проверка валидности номера счета
+        isValid: function(account) {
+            const cleanAccount = this.clean(account);
+            return cleanAccount.length === 20;
+        },
+
+        // Получение сообщения об ошибке
+        getErrorMessage: function() {
+            return 'Номер счета должен содержать 20 цифр';
+        }
+    },
+
+    // Общая функция для установки валидации поля
+    setupValidation: function(input, type) {
+        // Проверяем, существует ли уже элемент для отображения ошибки
+        let errorElement = input.parentNode.querySelector('.input-error');
+        
+        // Если элемента для ошибки нет, создаем его
+        if (!errorElement) {
+            errorElement = document.createElement('div');
+            errorElement.className = 'input-error';
+            input.parentNode.appendChild(errorElement);
+        }
+
+        const validator = this[type];
+        if (!validator) return;
+
+        // Удаляем существующие обработчики событий, если они есть
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+        input = newInput;
 
         input.addEventListener('input', (e) => {
             const value = e.target.value;
-            if (value && !this.isValid(value)) {
-                errorElement.textContent = this.getErrorMessage();
+            if (value && !validator.isValid(value)) {
+                errorElement.textContent = validator.getErrorMessage();
                 errorElement.classList.add('active');
                 input.classList.add('error');
             } else {
@@ -921,8 +1175,8 @@ const PhoneNumberUtils = {
 
         input.addEventListener('blur', (e) => {
             const value = e.target.value;
-            if (value && !this.isValid(value)) {
-                errorElement.textContent = this.getErrorMessage();
+            if (value && !validator.isValid(value)) {
+                errorElement.textContent = validator.getErrorMessage();
                 errorElement.classList.add('active');
                 input.classList.add('error');
             } else {
@@ -930,6 +1184,8 @@ const PhoneNumberUtils = {
                 input.classList.remove('error');
             }
         });
+
+        return input; // Возвращаем обновленный input элемент
     }
 };
 
@@ -942,17 +1198,63 @@ transactionForm.addEventListener('submit', function(e) {
 
     const formData = new FormData(transactionForm);
     const phoneNumber = formData.get('recipientPhone');
+    const tin = formData.get('recipientTIN');
+    const accountNumber = formData.get('accountNumber');
+    const recipientNumber = formData.get('recipientNumber');
 
-    // Проверяем номер телефона
-    if (!PhoneNumberUtils.isValid(phoneNumber)) {
-        // Находим поле ввода телефона и показываем ошибку рядом с ним
+    // Проверяем все поля
+    let hasError = false;
+
+    // Проверка телефона
+    if (!ValidationUtils.phone.isValid(phoneNumber)) {
         const phoneInput = document.getElementById('transaction-phone');
         const errorElement = phoneInput.parentNode.querySelector('.input-error');
         if (errorElement) {
-            errorElement.textContent = PhoneNumberUtils.getErrorMessage();
+            errorElement.textContent = ValidationUtils.phone.getErrorMessage();
             errorElement.classList.add('active');
             phoneInput.classList.add('error');
         }
+        hasError = true;
+    }
+
+    // Проверка ИНН
+    if (!ValidationUtils.tin.isValid(tin)) {
+        const tinInput = document.getElementById('transaction-tin');
+        const errorElement = tinInput.parentNode.querySelector('.input-error');
+        if (errorElement) {
+            errorElement.textContent = ValidationUtils.tin.getErrorMessage();
+            errorElement.classList.add('active');
+            tinInput.classList.add('error');
+        }
+        hasError = true;
+    }
+
+    // Проверка счета отправителя
+    if (!ValidationUtils.account.isValid(accountNumber)) {
+        const accountInput = document.getElementById('transaction-account');
+        const errorElement = accountInput.parentNode.querySelector('.input-error');
+        if (errorElement) {
+            errorElement.textContent = ValidationUtils.account.getErrorMessage();
+            errorElement.classList.add('active');
+            accountInput.classList.add('error');
+        }
+        hasError = true;
+    }
+
+    // Проверка счета получателя
+    if (!ValidationUtils.account.isValid(recipientNumber)) {
+        const recipientInput = document.getElementById('transaction-recipient');
+        const errorElement = recipientInput.parentNode.querySelector('.input-error');
+        if (errorElement) {
+            errorElement.textContent = ValidationUtils.account.getErrorMessage();
+            errorElement.classList.add('active');
+            recipientInput.classList.add('error');
+        }
+        hasError = true;
+    }
+
+    if (hasError) {
+        transactionError.textContent = 'Пожалуйста, исправьте ошибки в заполненных полях';
         return;
     }
 
@@ -962,10 +1264,10 @@ transactionForm.addEventListener('submit', function(e) {
         category: parseInt(formData.get('category')),
         senderBank: parseInt(formData.get('senderBank')),
         recipientBank: parseInt(formData.get('recipientBank')),
-        accountNumber: formData.get('accountNumber'),
-        recipientNumber: formData.get('recipientNumber'),
-        recipientTIN: formData.get('recipientTIN'),
-        recipientPhone: PhoneNumberUtils.clean(phoneNumber),
+        accountNumber: ValidationUtils.account.clean(accountNumber),
+        recipientNumber: ValidationUtils.account.clean(recipientNumber),
+        recipientTIN: ValidationUtils.tin.clean(tin),
+        recipientPhone: ValidationUtils.phone.clean(phoneNumber),
         legalType: parseInt(formData.get('legalType')),
         comment: formData.get('comment'),
         status: parseInt(formData.get('status')) || 1,
@@ -1136,8 +1438,8 @@ function buildQueryString(filters) {
     if (filters.recipient) queryParams.append('recipient_number', filters.recipient);
     if (filters.tin) queryParams.append('recipient_tin-bnum', filters.tin);
     if (filters.phone) {
-        if (PhoneNumberUtils.isValid(filters.phone)) {
-            queryParams.append('recipient_phone', PhoneNumberUtils.clean(filters.phone));
+        if (ValidationUtils.phone.isValid(filters.phone)) {
+            queryParams.append('recipient_phone', ValidationUtils.phone.clean(filters.phone));
         }
     }
     if (filters.legalType) {
@@ -1167,10 +1469,47 @@ document.addEventListener('DOMContentLoaded', () => {
             : 'Доп. параметры';
     });
 
-    // Добавляем обработчики для полей ввода телефона
+    // Добавляем обработчики валидации для всех полей
     const phoneInputs = document.querySelectorAll('input[type="tel"]');
     phoneInputs.forEach(input => {
-        PhoneNumberUtils.setupValidation(input);
+        const validatedInput = ValidationUtils.setupValidation(input, 'phone');
+        if (validatedInput !== input) {
+            // Обновляем ссылки на элементы в DOM
+            input = validatedInput;
+        }
+    });
+
+    const tinInputs = document.querySelectorAll('input[name="recipientTIN"], input[name="tin"]');
+    tinInputs.forEach(input => {
+        const validatedInput = ValidationUtils.setupValidation(input, 'tin');
+        if (validatedInput !== input) {
+            // Обновляем ссылки на элементы в DOM
+            input = validatedInput;
+        }
+    });
+
+    const accountInputs = document.querySelectorAll('input[name="accountNumber"], input[name="recipientNumber"], input[name="account"], input[name="recipient"]');
+    accountInputs.forEach(input => {
+        const validatedInput = ValidationUtils.setupValidation(input, 'account');
+        if (validatedInput !== input) {
+            // Обновляем ссылки на элементы в DOM
+            input = validatedInput;
+        }
+    });
+
+    // Добавляем обработчики для очистки ошибок при сбросе фильтров
+    document.getElementById('reset-button').addEventListener('click', () => {
+        // Очищаем все поля ввода
+        const filterInputs = document.querySelectorAll('#filter input');
+        filterInputs.forEach(input => {
+            input.value = '';
+            input.classList.remove('error');
+            const errorElement = input.parentNode.querySelector('.input-error');
+            if (errorElement) {
+                errorElement.classList.remove('active');
+                errorElement.textContent = '';
+            }
+        });
     });
 });
 
@@ -1944,5 +2283,32 @@ function deleteTransaction(transactionId) {
     })
     .catch(error => {
         console.error('Error during transaction deletion:', error);
+    });
+}
+
+// Функция для очистки сводки и дашборда
+function clearSummaryAndDashboard() {
+    // Очищаем сводку
+    const summaryValues = document.querySelectorAll('.summary-value');
+    summaryValues.forEach(value => {
+        value.textContent = '0';
+    });
+
+    // Очищаем графики
+    Object.values(charts).forEach(chart => {
+        if (chart) {
+            // Для каждого типа графика устанавливаем пустые данные
+            if (chart.data.datasets.length === 1) {
+                // Для графиков с одним набором данных
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+            } else if (chart.data.datasets.length === 2) {
+                // Для графиков с двумя наборами данных (например, доходы/расходы)
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+                chart.data.datasets[1].data = [];
+            }
+            chart.update();
+        }
     });
 }
