@@ -1,5 +1,5 @@
 CREATE TABLE http_logs (
-    id BIGINT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
 	user_id INT,
     request_method VARCHAR(10) NOT NULL,
     request_path VARCHAR(255) NOT NULL,

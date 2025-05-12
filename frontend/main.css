@@ -241,10 +241,10 @@ body {
 
 .input-error {
     display: none;
-    color: #ff0000;
+    color: #ff4d4d;
     font-size: 12px;
-    line-height: 120%;
     margin-top: 4px;
+    padding-left: 4px;
 }
 
 .input-error.active {
@@ -252,7 +252,8 @@ body {
 }
 
 input.error {
-    border-color: #ff0000;
+    border-color: #ff4d4d !important;
+    background-color: #fff5f5 !important;
 }
 
 /* Стили для поля ввода телефона */
@@ -1006,4 +1007,21 @@ input[type="tel"].error:focus {
     body > div {
         display: none !important;
     }
+}
+/* Стили для полей фильтров с ошибками */
+#filter input.error {
+    border-color: #ff4d4d !important;
+    background-color: #fff5f5 !important;
+}
+
+#filter .input-error {
+    display: none;
+    color: #ff4d4d;
+    font-size: 12px;
+    margin-top: 4px;
+    padding-left: 4px;
+}
+
+#filter .input-error.active {
+    display: block;
 }

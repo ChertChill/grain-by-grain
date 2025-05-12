@@ -1,5 +1,9 @@
 package api;
 
+import logging.ExportCSV;
+import logging.HttpLogRepository;
+import logging.HttpLoggingFilter;
+
 import authorization.AuthorizationHandler;
 import authorization.JWTHandler;
 import authorization.User;
@@ -14,6 +18,8 @@ import database.Category;
 import database.TransactionStatus;
 import database.DataLoader;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,9 +27,15 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 
 public class RestAPI {
+
+    private static final HttpLogRepository logRepository = new HttpLogRepository();
 
     //запуск АПИ
     public static void start() {
@@ -41,6 +53,15 @@ public class RestAPI {
         int port = 7070;
         app.start(port);
 
+        app.before(new HttpLoggingFilter(logRepository));
+        app.after(ctx -> HttpLoggingFilter.logResponse(ctx, logRepository));
+
+        app.exception(Exception.class, (e, ctx) -> {
+            ctx.status(500);
+            ctx.json(Map.of("error", e.getMessage()));
+            ctx.attribute("errorMessage", e.getMessage());
+        });
+
         //доступные API-запросы
         app.post("/api/login", RestAPI::loginRequest);
         app.post("/api/register", RestAPI::registrationRequest);
@@ -51,6 +72,7 @@ public class RestAPI {
         app.put("/api/update_transaction/{id}", RestAPI::updateTransaction);
         app.put("/api/confirm_transaction/{id}", RestAPI::confirmTransaction);
         app.put("/api/delete_transaction/{id}", RestAPI::deleteTransaction);
+        app.get("/api/get_logs", RestAPI::getLogs);
     }
 
     private static LinkedHashMap<String, Object> getDashboards(List<Transaction> transactions,
@@ -85,28 +107,43 @@ public class RestAPI {
     }
 
     private static void getUserTransactions(Context ctx) {
-        Map<String, Object> response = new LinkedHashMap<>();
         try {
             String token = checkHeader(ctx);
             User currentUser = JWTHandler.getUser(token);
             TransactionFilter transactionFilter = new TransactionFilter();
             Map<String, List<String>> queryParams = ctx.queryParamMap();
-            List<Transaction> selectedTransactions = selectedTransactions = transactionFilter.getUserTransactions(currentUser, queryParams);
+            List<Transaction> selectedTransactions = transactionFilter.getUserTransactions(currentUser, queryParams);
             selectedTransactions.sort(Comparator.comparing(Transaction::getTransactionDate));
-            response.put("transactions", selectedTransactions);
 
+            // Если запрашивается отчет, отправляем PDF файл
+            if (queryParams.containsKey("generate_report")) {
+                Map<String, String> summary = new TransactionSummary(selectedTransactions).toMap();
+                LinkedHashMap<String, Object> dashboards = getDashboards(selectedTransactions, queryParams, transactionFilter);
+                
+                // Генерируем PDF во временный файл
+                String tempFile = "temp_report.pdf";
+                ReportGenerator reportGenerator = new ReportGenerator(tempFile, selectedTransactions, summary, dashboards);
+                reportGenerator.generateFile();
+                
+                // Отправляем файл клиенту
+                ctx.contentType("application/pdf");
+                ctx.header("Content-Disposition", "attachment; filename=report.pdf");
+                ctx.result(Files.readAllBytes(Paths.get(tempFile)));
+                
+                // Удаляем временный файл после отправки
+                new File(tempFile).delete();
+                return;
+            }
+
+            // Если отчет не запрашивается, отправляем JSON с данными
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("transactions", selectedTransactions);
             Map<String, String> summary = new TransactionSummary(selectedTransactions).toMap();
             response.put("summary", summary);
-
-            LinkedHashMap<String, Object> dashboards = getDashboards(selectedTransactions,
-                    queryParams, transactionFilter);
+            LinkedHashMap<String, Object> dashboards = getDashboards(selectedTransactions, queryParams, transactionFilter);
             response.put("dashboards", dashboards);
-            if (queryParams.containsKey("generate_report")) {
-                ReportGenerator reportGenerator = new ReportGenerator(selectedTransactions, summary, dashboards);
-                reportGenerator.generateFile();
-            }
             ctx.status(201).json(response);
-        } catch (JwtException | SQLException e) {
+        } catch (JwtException | SQLException | IOException e) {
             ctx.status(400).json(e.getMessage());
         }
     }
@@ -189,7 +226,9 @@ public class RestAPI {
         public String email;
         public String password;
     }
-
+    public static class LogData {
+        public String tableName;
+    }
 
     //выдает всю информацию по справочникам
     private static void getReferenceData(Context ctx) {
@@ -409,5 +448,50 @@ public class RestAPI {
             ctx.status(400).json(response);
         }
     }
+    private static void getLogs(Context ctx) {
 
+        String tableName = null;
+        String logFileName = null; //"users_audit";
+        File csvFile = null;
+        FileInputStream csvFileInputStream = null;
+        User currentUser;
+        Map<String, Object> response = new LinkedHashMap<>();
+
+        LogData logData = ctx.bodyAsClass(LogData.class);
+
+        try {
+            String token = checkHeader(ctx);
+            currentUser = JWTHandler.getUser(token);
+        } catch (JwtException e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            ctx.status(400).json(response); // Уточнить, какой должен быть статус
+        }
+
+        tableName = logData.tableName;
+        logFileName = tableName;
+
+        // Получаем данные из таблицы БД
+        csvFile = ExportCSV.export(tableName);
+
+        try {
+
+            csvFileInputStream = new FileInputStream(csvFile);
+
+        } catch (FileNotFoundException e) {
+            System.err.println("Failed to find requested file: " + e.getMessage());
+        }
+
+        response.put("success", true);
+        response.put("table name", tableName);
+
+        // Устанавливаем заголовки для скачивания
+        ctx.header("Content-Disposition", "attachment; filename=" + logFileName +".csv");
+        ctx.contentType("text/csv");
+
+        ctx.status(201).json(response);
+
+        // Отправляем файл
+        ctx.result(csvFileInputStream);
+    }
 }

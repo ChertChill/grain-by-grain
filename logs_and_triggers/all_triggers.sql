@@ -129,7 +129,8 @@ CREATE TABLE transactions_audit (
 	status_id INT REFERENCES transaction_status(status_id),
 	legal_type_id INT REFERENCES legal_types(legal_type_id),
 	transaction_date DATE ,  
-	bank_id INT REFERENCES banks (bank_id),
+	sender_bank_id INT REFERENCES banks (bank_id),
+	recipient_bank_id INT REFERENCES banks (bank_id),
 	recipient_tin VARCHAR(11),
 	category_id INT REFERENCES categories(category_id),
 	recipient_phone VARCHAR(16),
@@ -141,7 +142,8 @@ CREATE TABLE transactions_audit (
 	new_comment TEXT,
 	new_amount DECIMAL(12, 2),
 	new_status_id INT REFERENCES transaction_status(status_id),
-	new_bank_id INT REFERENCES banks (bank_id),
+	new_sender_bank_id INT REFERENCES banks (bank_id),
+	new_recipient_bank_id INT REFERENCES banks (bank_id),
 	new_recipient_tin VARCHAR(11),
 	new_category_id INT REFERENCES categories(category_id),
 	new_recipient_phone VARCHAR(16)
@@ -162,7 +164,7 @@ BEGIN
 		type_id,
 		user_id,
 		--created_at,
-		changed_by, -- Предполагаем, что пользователь создает сам себя, иначе нужно передать ID текущего пользователя
+		changed_by, -- Предполагаем, что пользователь СОЗДАЕТ сам себя, иначе нужно передать ID текущего пользователя
 		account_number,
 		recipient_number,
 		
@@ -172,17 +174,20 @@ BEGIN
 		status_id,
 		legal_type_id,
 		transaction_date,  
-		bank_id,
+		sender_bank_id,
+		recipient_bank_id,
 		recipient_tin,
 		category_id,
 		recipient_phone,
-        
+
+        -- Блок новых значений
 		new_amount,
 		new_comment,
 		new_status_id,
 		new_legal_type_id,
 		new_transaction_date,  
-		new_bank_id,
+		new_sender_bank_id,
+		new_recipient_bank_id,
 		new_recipient_tin,
 		new_category_id,
 		new_recipient_phone
@@ -197,22 +202,27 @@ BEGIN
 		NEW.account_number,
 		NEW.recipient_number,
 
+        -- Блок старых значений
+        -- Для INSERT старым значениям присваивается NULL
 		NULL,	--amount
 		NULL,	--comment
 		NULL,	--status_id
 		NULL,	--legal_type_id
 		NULL,	--transaction_date
-		NULL,	--bank_id
+		NULL,	--sender_bank_id
+		NULL,	--recipient_bank_id
 		NULL,	--recipient_tin
 		NULL,	--category_id
 		NULL,	--recipient_phone
-		
+
+		-- Блок новых значений
 		NEW.amount,				--new_amount
 		NEW.comment,			--new_comment
 		NEW.status_id,			--new_status_id
 		NEW.legal_type_id,		--new_legal_type_id
 		NEW.transaction_date,	--new_transaction_date
-		NEW.bank_id,				--new_bank_id
+		NEW.sender_bank_id,		--new_sender_bank_id
+		NEW.recipient_bank_id,	--new_recipient_bank_id
 		NEW.recipient_tin,		--new_recipient_tin
 		NEW.category_id,		--new_category_id
 		NEW.recipient_phone		--new_recipient_phone
@@ -243,7 +253,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     
 	IF TG_OP = 'UPDATE' AND (OLD.* IS DISTINCT FROM NEW.*) THEN
-		-- Вставляем запись в таблицу аудита для операции INSERT
+		-- Вставляем запись в таблицу аудита для операции UPDATE
 		INSERT INTO transactions_audit (
 		
 			operation_type,
@@ -251,27 +261,30 @@ BEGIN
 			type_id,
 			user_id,
 			--created_at,
-			changed_by, -- Предполагаем, что пользователь создает сам себя, иначе нужно передать ID текущего пользователя
+			changed_by, -- Предполагаем, что пользователь ОБНОВЛЯЕТ сам себя, иначе нужно передать ID текущего пользователя
 			account_number,
 			recipient_number,
 			
-			-- Для INSERT старым значениям присваивается NULL
+			-- Для UPDATE сохраняем ва этот блок старые значения
 			amount,
 			comment,
 			status_id,
 			legal_type_id,
 			transaction_date,  
-			bank,
-			recipient_tin,
+			sender_bank_id,
+            recipient_bank_id,
+            recipient_tin,
 			category_id,
 			phone,
-			
+
+			-- Блок для новых значений
 			new_amount,
 			new_comment,
 			new_status_id,
 			new_legal_type_id,
 			new_transaction_date,  
-			new_bank,
+			new_sender_bank_id,
+            new_recipient_bank_id,
 			new_recipient_tin,
 			new_category_id,
 			new_phone
@@ -286,22 +299,26 @@ BEGIN
 			NEW.account_number,
 			NEW.recipient_number,
 
+            -- Блок старых значений
 			OLD.amount,				--amount
 			OLD.comment,			--comment
 			OLD.status_id,			--status_id
 			OLD.legal_type_id,		--legal_type_id
 			OLD.transaction_date,	--transaction_date
-			OLD.bank,				--bank
+			OLD.sender_bank_id,		--sender_bank_id
+			OLD.recipient_bank_id,	--recipient_bank_id
 			OLD.recipient_tin,		--recipient_tin
 			OLD.category_id,		--category_id
 			OLD.phone,				--phone
-			
+
+			-- Блок новых значений
 			NEW.amount,				--new_amount
 			NEW.comment,			--new_comment
 			NEW.status_id,			--new_status_id
 			NEW.legal_type_id,		--new_legal_type_id
 			NEW.transaction_date,	--new_transaction_date
-			NEW.bank,				--new_bank
+			NEW.sender_bank_id,		--new_sender_bank_id
+			NEW.recipient_bank_id,	--new_recipient_bank_id
 			NEW.recipient_tin,		--new_recipient_tin
 			NEW.category_id,		--new_category_id
 			NEW.phone				--new_phone
@@ -344,7 +361,7 @@ BEGIN
 		type_id,
 		user_id,
 		--created_at,
-		changed_by, -- Предполагаем, что пользователь удаляет свои транзакции, иначе нужно передать ID текущего пользователя
+		changed_by, -- Предполагаем, что пользователь УДАЛЯЕТ свои транзакции, иначе нужно передать ID текущего пользователя
 		account_number,
 		recipient_number,
 		
@@ -354,7 +371,8 @@ BEGIN
 		status_id,
 		legal_type_id,
 		transaction_date,  
-		bank_id,
+		sender_bank_id,
+        recipient_bank_id,
 		recipient_tin,
 		category_id,
 		recipient_phone,
@@ -365,7 +383,8 @@ BEGIN
 		new_status_id,
 		new_legal_type_id,
 		new_transaction_date,  
-		new_bank_id,
+        new_sender_bank_id,
+        new_recipient_bank_id,
 		new_recipient_tin,
 		new_category_id,
 		new_recipient_phone
@@ -380,26 +399,33 @@ BEGIN
 		OLD.account_number,
 		OLD.recipient_number,
 
+        -- Блок старых значений
+        -- Старые значения не изменяются
+        -- За исключением статуса транзакции
 		OLD.amount,				--amount
 		OLD.comment,			--comment
-		--OLD.status_id,			--status_id
+		--OLD.status_id,		--status_id
 		6, --Платеж отменен
 		OLD.legal_type_id,		--legal_type_id
 		OLD.transaction_date,	--transaction_date
-		OLD.bank_id,				--bank
+		OLD.sender_bank_id,		--sender_bank_id
+		OLD.recipient_bank_id,	--recipient_bank_id
 		OLD.recipient_tin,		--recipient_tin
 		OLD.category_id,		--category_id
-		OLD.recipient_phone,				--phone
-		
-		NULL,				--new_amount
-		NULL,			--new_comment
-		NULL,			--new_status_id
-		NULL,		--new_legal_type_id
+		OLD.recipient_phone,	--phone
+
+		-- При удалении новые значения не устанавливаются
+		-- Блок новых значений заполняем NULL
+		NULL,	--new_amount
+		NULL,	--new_comment
+		NULL,	--new_status_id
+		NULL,	--new_legal_type_id
 		NULL,	--new_transaction_date
-		NULL,				--new_bank
-		NULL,		--new_recipient_tin
-		NULL,		--new_category_id
-		NULL				--new_phone
+		NULL,	--new_sender_bank_id
+		NULL,	--new_recipient_bank_id
+		NULL,	--new_recipient_tin
+		NULL,	--new_category_id
+		NULL	--new_phone
 	);
 	
 	RAISE NOTICE E'Trigger DELETE\nValue of transaction_id : %', OLD.transaction_id;
@@ -417,4 +443,3 @@ CREATE OR REPLACE TRIGGER delete_transactions_audit
     ON public.transactions
     FOR EACH ROW
     EXECUTE FUNCTION public.audit_transactions_delete();
-

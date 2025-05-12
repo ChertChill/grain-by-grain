@@ -1,0 +1,2 @@
+audit_id,operation_type,user_id,changed_at,changed_by,old_email,new_email,old_password_hash,new_password_hash,old_full_name,new_full_name
+1,INSERT,3,2025-05-12 19:20:50.416999,3,,abrakadabra911@gmail.com,,$2a$10$bk.iNUuPYyTPsxBLKLGoYOWguJuTtOrFWdOZczO8t3cvDrFeYK84W,,polly

@@ -1,4 +1,8 @@
--- Генерация тестовых транзакций на 2 пользователя
+-- Генерация тестовых транзакций на 2 пользователя (пароли для тестовых юзеров - 123)
+
+INSERT INTO users (email, password_hash, full_name) VALUES
+('test@yandex.ru', '$2a$10$.0TZlsKnckkri2.WSok3beh2.4W/oGjzEDCoZAxPs0fKV2Yn3poDa', 'Петров Петр Петрович'),	
+('test2@yandex.ru', '$2a$10$a2EZrIaB/WIyhnHxIDLaq.qKvIlnAFe4mUdSQD086EnpztDvrHoSu', 'Иванов Иван Иванович');
 
 INSERT INTO transactions (
     type_id,
@@ -9,7 +13,7 @@ INSERT INTO transactions (
     status_id,
     created_at,
     user_id,
-    account_number,а
+    account_number,
     recipient_number,
     legal_type_id,
     transaction_date,
