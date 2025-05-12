@@ -8,9 +8,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
-    private static String databaseURL = "jdbc:postgresql://localhost:5432/gbg-db";
+    private static String databaseURL = "jdbc:postgresql://localhost:5432/GrainByGrain";
     private static String databaseUser = "postgres";
-    private static String databasePassword = "5062";
+    private static String databasePassword = "1";
 
     private static final HikariConfig config = new HikariConfig();
     private static HikariDataSource ds;

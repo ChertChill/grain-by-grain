@@ -27,6 +27,9 @@ public class TransactionFilter {
         List<Transaction> transactions = new ArrayList<>();
         parameters.add(user.getId());
 
+        filters = new HashMap<>(filters);
+        filters.remove("generate_report");
+
         //применяем фильтры по параметрам
         if (!filters.isEmpty()) {
             for (Map.Entry<String, List<String>> entry : filters.entrySet()) {

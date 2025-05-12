@@ -8,10 +8,7 @@ import authorization.errors.RegistrationInputException;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.jsonwebtoken.JwtException;
-import transactions.DashboardGenerator;
-import transactions.Transaction;
-import transactions.TransactionFilter;
-import transactions.TransactionSummary;
+import transactions.*;
 import database.Bank;
 import database.Category;
 import database.TransactionStatus;
@@ -56,6 +53,29 @@ public class RestAPI {
         app.put("/api/delete_transaction/{id}", RestAPI::deleteTransaction);
     }
 
+    private static LinkedHashMap<String, Object> getDashboards(List<Transaction> transactions,
+                                                               Map<String, List<String>> queryParams,
+                                                               TransactionFilter transactionFilter) {
+        LinkedHashMap<String, Object> dashboards = null;
+        DashboardGenerator dashboardGenerator = new DashboardGenerator();
+        if (queryParams.containsKey("transaction_date" + transactionFilter.greater_identificator)) {
+            dashboards = dashboardGenerator.generateDashboards(
+                    LocalDateTime.parse(queryParams.get("transaction_date" + transactionFilter.greater_identificator).getFirst()),
+                    transactions);
+        } else if (queryParams.containsKey("transaction_date" + transactionFilter.less_identificator)) {
+            dashboards = dashboardGenerator.generateDashboards(transactions.getFirst().getTransactionDate(),
+                    transactions);
+        } else if (queryParams.containsKey("transaction_date" + transactionFilter.num_identificator)) {
+            dashboards = dashboardGenerator.generateDashboards(
+                    LocalDateTime.parse(queryParams.get("transaction_date" + transactionFilter.num_identificator).getFirst()),
+                    transactions);
+        } else {
+            dashboards = dashboardGenerator.generateDashboards(transactions.getFirst().getTransactionDate(),
+                    transactions);
+        }
+        return dashboards;
+    }
+
     private static String checkHeader(Context ctx) {
         String authHeader = ctx.header("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -71,31 +91,20 @@ public class RestAPI {
             User currentUser = JWTHandler.getUser(token);
             TransactionFilter transactionFilter = new TransactionFilter();
             Map<String, List<String>> queryParams = ctx.queryParamMap();
-            List<Transaction> selectedTransactions = transactionFilter.getUserTransactions(currentUser, queryParams);
+            List<Transaction> selectedTransactions = selectedTransactions = transactionFilter.getUserTransactions(currentUser, queryParams);
             selectedTransactions.sort(Comparator.comparing(Transaction::getTransactionDate));
             response.put("transactions", selectedTransactions);
 
-            response.put("summary", new TransactionSummary(selectedTransactions).toMap());
+            Map<String, String> summary = new TransactionSummary(selectedTransactions).toMap();
+            response.put("summary", summary);
 
-            LinkedHashMap<String, Object> dashboards = null;
-            DashboardGenerator dashboardGenerator = new DashboardGenerator();
-            //Это можно красивее сделать
-            if (queryParams.containsKey("transaction_date" + transactionFilter.greater_identificator)) {
-                dashboards = dashboardGenerator.generateDashboards(
-                        LocalDateTime.parse(queryParams.get("transaction_date" + transactionFilter.greater_identificator).getFirst()),
-                        selectedTransactions);
-            } else if (queryParams.containsKey("transaction_date" + transactionFilter.less_identificator)) {
-                dashboards = dashboardGenerator.generateDashboards(selectedTransactions.getFirst().getTransactionDate(),
-                        selectedTransactions);
-            } else if (queryParams.containsKey("transaction_date" + transactionFilter.num_identificator)) {
-                dashboards = dashboardGenerator.generateDashboards(
-                        LocalDateTime.parse(queryParams.get("transaction_date" + transactionFilter.num_identificator).getFirst()),
-                        selectedTransactions);
-            } else {
-                dashboards = dashboardGenerator.generateDashboards(selectedTransactions.getFirst().getTransactionDate(),
-                        selectedTransactions);
-            }
+            LinkedHashMap<String, Object> dashboards = getDashboards(selectedTransactions,
+                    queryParams, transactionFilter);
             response.put("dashboards", dashboards);
+            if (queryParams.containsKey("generate_report")) {
+                ReportGenerator reportGenerator = new ReportGenerator(selectedTransactions, summary, dashboards);
+                reportGenerator.generateFile();
+            }
             ctx.status(201).json(response);
         } catch (JwtException | SQLException e) {
             ctx.status(400).json(e.getMessage());

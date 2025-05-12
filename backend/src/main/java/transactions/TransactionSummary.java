@@ -31,12 +31,12 @@ public class TransactionSummary {
         this.balance = income - expense;
     }
 
-    public Map<String, Object> toMap() {
-        Map<String, Object> summary = new LinkedHashMap<>();
-        summary.put("total_count", totalCount);
-        summary.put("total_income", totalIncome);
-        summary.put("total_expense", totalExpense);
-        summary.put("balance", balance);
+    public Map<String, String> toMap() {
+        Map<String, String> summary = new LinkedHashMap<>();
+        summary.put("total_count", String.valueOf(totalCount));
+        summary.put("total_income", String.valueOf(totalIncome));
+        summary.put("total_expense", String.valueOf(totalExpense));
+        summary.put("balance", String.valueOf(balance));
         return summary;
     }
 }
