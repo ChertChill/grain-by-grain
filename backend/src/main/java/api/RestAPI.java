@@ -195,9 +195,6 @@ public class RestAPI {
     private static void getReferenceData(Context ctx) {
         Map<String, Object> response = new LinkedHashMap<>();
         try {
-            String token = checkHeader(ctx);
-            User currentUser = JWTHandler.getUser(token);
-            
             // Get banks
             List<Bank> banks = DataLoader.getBanks();
             response.put("banks", banks);
