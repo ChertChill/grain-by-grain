@@ -1031,7 +1031,7 @@ function editTransaction(transactionId) {
                             }
                             break;
                         case 'Счет списания':
-                            const accountInput = document.getElementById('transaction-account');
+                            let accountInput = document.getElementById('transaction-account');
                             accountInput.value = value;
                             // Добавляем валидацию для счета отправителя
                             const validatedAccountInput = ValidationUtils.setupValidation(accountInput, 'account');
@@ -1041,7 +1041,7 @@ function editTransaction(transactionId) {
                             }
                             break;
                         case 'Счет получателя':
-                            const recipientInput = document.getElementById('transaction-recipient');
+                            let recipientInput = document.getElementById('transaction-recipient');
                             recipientInput.value = value;
                             // Добавляем валидацию для счета получателя
                             const validatedRecipientInput = ValidationUtils.setupValidation(recipientInput, 'account');
@@ -1051,7 +1051,7 @@ function editTransaction(transactionId) {
                             }
                             break;
                         case 'ИНН получателя':
-                            const tinInput = document.getElementById('transaction-tin');
+                            let tinInput = document.getElementById('transaction-tin');
                             tinInput.value = value;
                             // Добавляем валидацию для ИНН
                             const validatedTinInput = ValidationUtils.setupValidation(tinInput, 'tin');
@@ -1061,7 +1061,7 @@ function editTransaction(transactionId) {
                             }
                             break;
                         case 'Телефон получателя':
-                            const phoneInput = document.getElementById('transaction-phone');
+                            let phoneInput = document.getElementById('transaction-phone');
                             phoneInput.value = value;
                             // Добавляем валидацию для телефона
                             const validatedPhoneInput = ValidationUtils.setupValidation(phoneInput, 'phone');
