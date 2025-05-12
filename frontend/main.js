@@ -61,6 +61,43 @@ const resetButton = document.getElementById('reset-button');
 
 resetButton.addEventListener('click', () => {
     console.log('Resetting all filters...');
+    
+    // Сбрасываем все поля фильтрации к начальным значениям
+    const filterInputs = document.querySelectorAll('#filter input, #filter select');
+    filterInputs.forEach(input => {
+        // Для select элементов устанавливаем пустое значение
+        if (input.tagName === 'SELECT') {
+            input.value = '';
+        } else {
+            // Для input элементов очищаем значение
+            input.value = '';
+            // Убираем класс ошибки и сообщение об ошибке
+            input.classList.remove('error');
+            const errorElement = input.parentNode.querySelector('.input-error');
+            if (errorElement) {
+                errorElement.classList.remove('active');
+                errorElement.textContent = '';
+            }
+        }
+    });
+
+    // Сбрасываем все поля в блоке дополнительных параметров
+    const filterDetailsInputs = document.querySelectorAll('#filter-parameter .ti-details-content input, #filter-parameter .ti-details-content select');
+    filterDetailsInputs.forEach(input => {
+        if (input.tagName === 'SELECT') {
+            input.value = '';
+        } else {
+            input.value = '';
+            input.classList.remove('error');
+            const errorElement = input.parentNode.querySelector('.input-error');
+            if (errorElement) {
+                errorElement.classList.remove('active');
+                errorElement.textContent = '';
+            }
+        }
+    });
+
+    // Получаем транзакции без фильтров
     getUserTransactions();
 });
 
@@ -1527,10 +1564,33 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateTransactionsSummary(data) {
     const summaryValues = document.querySelectorAll('.summary-value');
     if (summaryValues.length >= 4) {
-        summaryValues[0].textContent = data.total_count.toLocaleString('ru-RU');
-        summaryValues[1].textContent = data.total_income.toLocaleString('ru-RU') + 'р';
-        summaryValues[2].textContent = data.total_expense.toLocaleString('ru-RU') + 'р';
-        summaryValues[3].textContent = data.balance.toLocaleString('ru-RU') + 'р';
+        // Явно преобразуем значения в числа и форматируем их
+        const formatNumber = (value) => {
+            // Преобразуем в число, если это строка
+            const num = typeof value === 'string' ? parseFloat(value.replace(/[^\d.-]/g, '')) : Number(value);
+            // Проверяем, что это валидное число
+            if (isNaN(num)) return '0';
+            // Форматируем число с разделителями разрядов
+            return num.toLocaleString('ru-RU', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+                useGrouping: true
+            });
+        };
+
+        // Обновляем значения с форматированием
+        summaryValues[0].textContent = formatNumber(data.total_count);
+        summaryValues[1].textContent = formatNumber(data.total_income) + ' р';
+        summaryValues[2].textContent = formatNumber(data.total_expense) + ' р';
+        summaryValues[3].textContent = formatNumber(data.balance) + ' р';
+
+        // Для отладки
+        console.log('Summary data:', {
+            total_count: data.total_count,
+            total_income: data.total_income,
+            total_expense: data.total_expense,
+            balance: data.balance
+        });
     }
 }
 
@@ -2312,3 +2372,69 @@ function clearSummaryAndDashboard() {
         }
     });
 }
+
+// Обработчик для кнопки "Создать отчет"
+const createButton = document.getElementById('create-button');
+
+createButton.addEventListener('click', () => {
+    console.log('Generating report with current filters...');
+
+    // Получаем текущие параметры фильтрации
+    const filters = {
+        dateFrom: document.getElementById('filter-date-from').value,
+        dateTo: document.getElementById('filter-date-to').value,
+        type: document.getElementById('filter-type').value,
+        category: document.getElementById('filter-category').value,
+        amountFrom: document.getElementById('filter-amount-from').value,
+        amountTo: document.getElementById('filter-amount-to').value,
+        status: document.getElementById('filter-status').value,
+        senderBank: document.getElementById('filter-sender-bank').value,
+        recipientBank: document.getElementById('filter-recipient-bank').value,
+        account: document.getElementById('filter-account').value,
+        recipient: document.getElementById('filter-recipient').value,
+        tin: document.getElementById('filter-tin').value,
+        phone: document.getElementById('filter-phone').value,
+        legalType: document.getElementById('filter-legal-type').value
+    };
+
+    console.log('Report generation filters:', filters);
+
+    // Добавляем параметр generate_report
+    const queryParams = new URLSearchParams(buildQueryString(filters));
+    queryParams.append('generate_report', 'true');
+
+    const token = localStorage.getItem('authToken');
+
+    // Отправляем запрос на генерацию отчета
+    fetch(`http://localhost:7070/api/get_transactions?${queryParams.toString()}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            console.error('Error generating report:', response.status, response.statusText);
+            throw new Error('Error generating report');
+        }
+        console.log('Report generated successfully, downloading...');
+        // Получаем PDF файл
+        return response.blob();
+    })
+    .then(blob => {
+        // Создаем ссылку для скачивания
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'report.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+        console.log('Report downloaded successfully');
+    })
+    .catch(error => {
+        console.error('Error during report generation:', error);
+        alert('An error occurred while generating the report');
+    });
+});

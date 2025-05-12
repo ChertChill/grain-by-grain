@@ -21,6 +21,10 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 
 public class RestAPI {
@@ -85,28 +89,43 @@ public class RestAPI {
     }
 
     private static void getUserTransactions(Context ctx) {
-        Map<String, Object> response = new LinkedHashMap<>();
         try {
             String token = checkHeader(ctx);
             User currentUser = JWTHandler.getUser(token);
             TransactionFilter transactionFilter = new TransactionFilter();
             Map<String, List<String>> queryParams = ctx.queryParamMap();
-            List<Transaction> selectedTransactions = selectedTransactions = transactionFilter.getUserTransactions(currentUser, queryParams);
+            List<Transaction> selectedTransactions = transactionFilter.getUserTransactions(currentUser, queryParams);
             selectedTransactions.sort(Comparator.comparing(Transaction::getTransactionDate));
-            response.put("transactions", selectedTransactions);
 
+            // Если запрашивается отчет, отправляем PDF файл
+            if (queryParams.containsKey("generate_report")) {
+                Map<String, String> summary = new TransactionSummary(selectedTransactions).toMap();
+                LinkedHashMap<String, Object> dashboards = getDashboards(selectedTransactions, queryParams, transactionFilter);
+                
+                // Генерируем PDF во временный файл
+                String tempFile = "temp_report.pdf";
+                ReportGenerator reportGenerator = new ReportGenerator(tempFile, selectedTransactions, summary, dashboards);
+                reportGenerator.generateFile();
+                
+                // Отправляем файл клиенту
+                ctx.contentType("application/pdf");
+                ctx.header("Content-Disposition", "attachment; filename=report.pdf");
+                ctx.result(Files.readAllBytes(Paths.get(tempFile)));
+                
+                // Удаляем временный файл после отправки
+                new File(tempFile).delete();
+                return;
+            }
+
+            // Если отчет не запрашивается, отправляем JSON с данными
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("transactions", selectedTransactions);
             Map<String, String> summary = new TransactionSummary(selectedTransactions).toMap();
             response.put("summary", summary);
-
-            LinkedHashMap<String, Object> dashboards = getDashboards(selectedTransactions,
-                    queryParams, transactionFilter);
+            LinkedHashMap<String, Object> dashboards = getDashboards(selectedTransactions, queryParams, transactionFilter);
             response.put("dashboards", dashboards);
-            if (queryParams.containsKey("generate_report")) {
-                ReportGenerator reportGenerator = new ReportGenerator(selectedTransactions, summary, dashboards);
-                reportGenerator.generateFile();
-            }
             ctx.status(201).json(response);
-        } catch (JwtException | SQLException e) {
+        } catch (JwtException | SQLException | IOException e) {
             ctx.status(400).json(e.getMessage());
         }
     }
