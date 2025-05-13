@@ -120,7 +120,7 @@ cd grain-by-grain
 
 ### Доступ к приложению
 1. Через веб-интерфейс:
-   - Откройте `index.html` в браузере или перейдите по ссылке на деплой лендинга `https://chertchill.github.io/grain-by-grain/`
+   - Откройте `index.html` в браузере или перейдите по ссылке на деплой лендинга https://chertchill.github.io/grain-by-grain/
    - Войдите в систему используя учетные данные
 
 2. Через API:
