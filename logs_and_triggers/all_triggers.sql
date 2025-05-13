@@ -275,7 +275,7 @@ BEGIN
             recipient_bank_id,
             recipient_tin,
 			category_id,
-			phone,
+			recipient_phone,
 
 			-- Блок для новых значений
 			new_amount,
@@ -287,7 +287,7 @@ BEGIN
             new_recipient_bank_id,
 			new_recipient_tin,
 			new_category_id,
-			new_phone
+			new_recipient_phone
 		
 		) VALUES (
 			'UPDATE',
@@ -309,7 +309,7 @@ BEGIN
 			OLD.recipient_bank_id,	--recipient_bank_id
 			OLD.recipient_tin,		--recipient_tin
 			OLD.category_id,		--category_id
-			OLD.phone,				--phone
+			OLD.recipient_phone,	--recipient_phone
 
 			-- Блок новых значений
 			NEW.amount,				--new_amount
@@ -321,7 +321,7 @@ BEGIN
 			NEW.recipient_bank_id,	--new_recipient_bank_id
 			NEW.recipient_tin,		--new_recipient_tin
 			NEW.category_id,		--new_category_id
-			NEW.phone				--new_phone
+			NEW.recipient_phone		--new_recipient_phone
 
 		);
     END IF;
@@ -412,7 +412,7 @@ BEGIN
 		OLD.recipient_bank_id,	--recipient_bank_id
 		OLD.recipient_tin,		--recipient_tin
 		OLD.category_id,		--category_id
-		OLD.recipient_phone,	--phone
+		OLD.recipient_phone,	--recipient_phone
 
 		-- При удалении новые значения не устанавливаются
 		-- Блок новых значений заполняем NULL
